@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
+import { Image as ImageIcon } from "lucide-react";
 
 type Driver = {
     id: string;
@@ -695,12 +696,16 @@ export default function EditRaceResultsPage() {
                             </p>
                         </div>
 
-                        <Link
-                            href="/settings/circuits"
-                            className="rounded-lg border border-red-700 px-6 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
-                        >
-                            ← Voltar para circuitos
-                        </Link>
+                        <div className="flex items-center gap-3">
+
+
+                            <Link
+                                href="/settings/circuits"
+                                className="rounded-lg border border-red-700 px-6 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
+                            >
+                                ← Voltar para circuitos
+                            </Link>
+                        </div>
                     </div>
 
                     <section className="mb-4 rounded-xl border border-zinc-800 bg-[#070d13] p-6">
@@ -1027,6 +1032,14 @@ export default function EditRaceResultsPage() {
                     </section>
 
                     <div className="mt-6 flex justify-end gap-4">
+                        <Link
+                            href={`/races/${raceId}/backups`}
+                            className="flex items-center gap-2 rounded-md border border-zinc-700 px-8 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
+                        >
+                            <ImageIcon size={14} className="opacity-70" />
+                            Backups
+                        </Link>
+
                         <Link
                             href="/settings/circuits"
                             className="rounded-md border border-zinc-700 px-8 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
