@@ -16,10 +16,12 @@ export default function RootLayout({
       <body className="bg-[#0a0a0a] text-white">
         <div className="flex">
           {/* Sidebar */}
-          <Sidebar />
+         <div className="hidden md:block">
+  <Sidebar />
+</div>
 
           {/* Conteúdo */}
-         <main className="w-full p-4 md:ml-[260px] md:p-8">
+          <main className="w-full p-4 md:ml-[260px] md:p-8">
             {children}
           </main>
         </div>
