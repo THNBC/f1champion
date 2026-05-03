@@ -727,7 +727,7 @@ export default function HomePage() {
                 <img
                   src={selectedCircuitImage}
                   alt={selectedCircuit?.name ?? "Pista"}
-                  className="h-[150px] w-auto object-contain opacity-95"
+                  className="h-[180px] w-auto object-contain opacity-95"
                   onError={(e) => {
                     e.currentTarget.src = "/gps/default.png";
                   }}
