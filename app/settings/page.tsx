@@ -1,6 +1,9 @@
+"use client";
+
 import AdminGuard from "@/components/AdminGuard";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { SlidersHorizontal, Users, Map } from "lucide-react";
+import { SlidersHorizontal, Users, Map, AlertTriangle } from "lucide-react";
 
 function SettingsCard({
   href,
@@ -60,6 +63,40 @@ function SettingsCard({
 }
 
 export default function SettingsPage() {
+  async function handleResetChampionship() {
+    const confirmReset = confirm(
+      "Tem certeza que deseja resetar o campeonato? Isso vai apagar pilotos, resultados e destaques."
+    );
+
+    if (!confirmReset) return;
+
+    const confirmAgain = confirm(
+      "Essa ação não pode ser desfeita. Deseja continuar?"
+    );
+
+    if (!confirmAgain) return;
+
+    try {
+      await supabase.from("race_awards").delete().neq("race_id", "");
+      await supabase.from("race_results").delete().neq("race_id", "");
+      await supabase.from("drivers").delete().neq("id", "");
+
+      await supabase
+        .from("circuits")
+        .update({
+          is_finished: false,
+          winner: null,
+        })
+        .neq("id", "");
+
+      alert("Campeonato resetado com sucesso!");
+      window.location.reload();
+    } catch (error) {
+      console.error("Erro ao resetar campeonato:", error);
+      alert("Erro ao resetar campeonato.");
+    }
+  }
+
   return (
     <AdminGuard>
       <main className="min-h-screen bg-[#020407] px-10 py-10 text-white">
@@ -120,6 +157,34 @@ export default function SettingsPage() {
                 { icon: "›", label: "Simulação e colisões" },
               ]}
             />
+          </section>
+
+          <section className="mt-10 rounded-2xl border border-red-900/50 bg-red-950/10 p-8 shadow-[0_0_50px_rgba(0,0,0,0.35)]">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex gap-5">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10">
+                  <AlertTriangle size={28} className="text-red-500" />
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-black uppercase text-red-500">
+                    Zona de perigo
+                  </h2>
+
+                  <p className="mt-2 max-w-3xl text-sm text-zinc-400">
+                    Apaga pilotos, resultados e destaques do campeonato. As pistas
+                    continuam cadastradas, mas voltam como não finalizadas.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={handleResetChampionship}
+                className="rounded-lg border border-red-600 bg-red-600/10 px-7 py-4 text-sm font-black uppercase tracking-wide text-red-500 transition hover:bg-red-600 hover:text-white"
+              >
+                Resetar campeonato
+              </button>
+            </div>
           </section>
         </div>
       </main>
