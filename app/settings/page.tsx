@@ -1,3 +1,4 @@
+import AdminGuard from "@/components/AdminGuard";
 import Link from "next/link";
 import { SlidersHorizontal, Users, Map } from "lucide-react";
 
@@ -60,68 +61,68 @@ function SettingsCard({
 
 export default function SettingsPage() {
   return (
-    <main className="min-h-screen bg-[#020407] px-10 py-10 text-white">
-      <div className="mx-auto max-w-[1500px]">
-        <div className="mb-12">
-          <p className="mb-6 inline-block border-b-2 border-red-600 pb-2 text-sm font-black uppercase tracking-wide text-red-500">
-            Settings
-          </p>
+    <AdminGuard>
+      <main className="min-h-screen bg-[#020407] px-10 py-10 text-white">
+        <div className="mx-auto max-w-[1500px]">
+          <div className="mb-12">
+            <p className="mb-6 inline-block border-b-2 border-red-600 pb-2 text-sm font-black uppercase tracking-wide text-red-500">
+              Settings
+            </p>
 
-          <h1 className="text-5xl font-black tracking-tight">
-            Configurações
-          </h1>
+            <h1 className="text-5xl font-black tracking-tight">
+              Configurações
+            </h1>
 
-          <p className="mt-5 text-lg text-zinc-400">
-            Gerencie e mantenha todos os dados do campeonato atualizados.
-          </p>
+            <p className="mt-5 text-lg text-zinc-400">
+              Gerencie e mantenha todos os dados do campeonato atualizados.
+            </p>
+          </div>
+
+          <section className="grid grid-cols-1 gap-10 xl:grid-cols-2">
+            <SettingsCard
+              href="/settings/drivers"
+              icon={Users}
+              title="Pilotos"
+              description="Gerencie os pilotos e suas informações."
+              button="Gerenciar pilotos"
+              items={[
+                { icon: "+", label: "Adicionar piloto" },
+                { icon: "✎", label: "Editar piloto" },
+                { icon: "⌫", label: "Remover piloto" },
+              ]}
+            />
+
+            <SettingsCard
+              href="/settings/circuits"
+              icon={Map}
+              title="Circuitos"
+              description="Gerencie os circuitos e suas informações."
+              button="Gerenciar circuitos"
+              items={[
+                { icon: "+", label: "Adicionar circuito" },
+                { icon: "✎", label: "Editar circuito" },
+                { icon: "⌫", label: "Remover circuito" },
+              ]}
+            />
+
+            <SettingsCard
+              href="/settings/lobby"
+              icon={SlidersHorizontal}
+              className="xl:col-span-2"
+              title="Lobby Config."
+              description="Configure regras, assistências e simulação do lobby."
+              button="Configurar lobby"
+              items={[
+                { icon: "›", label: "Opções do lobby e IA" },
+                { icon: "›", label: "Restrições de assistência" },
+                { icon: "›", label: "Fim de semana e clima" },
+                { icon: "›", label: "Regras e bandeiras" },
+                { icon: "›", label: "Simulação e colisões" },
+              ]}
+            />
+          </section>
         </div>
-
-        {/* GRID AJUSTADO */}
-        <section className="grid grid-cols-1 gap-10 xl:grid-cols-2">
-          <SettingsCard
-            href="/settings/drivers"
-            icon={Users}
-            title="Pilotos"
-            description="Gerencie os pilotos e suas informações."
-            button="Gerenciar pilotos"
-            items={[
-              { icon: "+", label: "Adicionar piloto" },
-              { icon: "✎", label: "Editar piloto" },
-              { icon: "⌫", label: "Remover piloto" },
-            ]}
-          />
-
-          <SettingsCard
-            href="/settings/circuits"
-            icon={Map}
-            title="Circuitos"
-            description="Gerencie os circuitos e suas informações."
-            button="Gerenciar circuitos"
-            items={[
-              { icon: "+", label: "Adicionar circuito" },
-              { icon: "✎", label: "Editar circuito" },
-              { icon: "⌫", label: "Remover circuito" },
-            ]}
-          />
-
-          {/* LOBBY FULL WIDTH */}
-          <SettingsCard
-            href="/settings/lobby"
-            icon={SlidersHorizontal}
-            className="xl:col-span-2"
-            title="Lobby Config."
-            description="Configure regras, assistências e simulação do lobby."
-            button="Configurar lobby"
-            items={[
-              { icon: "›", label: "Opções do lobby e IA" },
-              { icon: "›", label: "Restrições de assistência" },
-              { icon: "›", label: "Fim de semana e clima" },
-              { icon: "›", label: "Regras e bandeiras" },
-              { icon: "›", label: "Simulação e colisões" },
-            ]}
-          />
-        </section>
-      </div>
-    </main>
+      </main>
+    </AdminGuard>
   );
 }
