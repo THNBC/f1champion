@@ -1,5 +1,6 @@
 "use client";
 
+import AdminGuard from "@/components/AdminGuard";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -379,14 +380,14 @@ function Toast({
     return (
         <div
             className={`fixed bottom-10 left-1/2 z-[9999] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isLeaving
-                    ? "translate-y-4 scale-95 opacity-0 blur-[2px]"
-                    : "translate-y-0 scale-100 opacity-100 blur-0"
+                ? "translate-y-4 scale-95 opacity-0 blur-[2px]"
+                : "translate-y-0 scale-100 opacity-100 blur-0"
                 }`}
         >
             <div
                 className={`animate-toast-in rounded-xl border px-6 py-4 shadow-2xl backdrop-blur-md ${type === "success"
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
-                        : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
+                    : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
                     }`}
             >
                 <p className="text-center text-xs font-black uppercase tracking-wide">
@@ -436,8 +437,8 @@ function SelectControl({
             disabled={disabled}
             onChange={(e) => onChange(e.target.value)}
             className={`h-9 w-full rounded-md border px-4 text-sm font-medium outline-none transition [color-scheme:dark] ${disabled
-                    ? "cursor-not-allowed border-zinc-700 bg-zinc-900/70 text-zinc-600"
-                    : "border-zinc-700 bg-black/60 text-white focus:border-red-500"
+                ? "cursor-not-allowed border-zinc-700 bg-zinc-900/70 text-zinc-600"
+                : "border-zinc-700 bg-black/60 text-white focus:border-red-500"
                 }`}
         >
             {options.map((option) => (
@@ -492,8 +493,8 @@ function CheckboxControl({
         <label className="flex cursor-pointer items-center gap-3 text-sm font-bold text-zinc-300">
             <span
                 className={`flex h-4 w-4 items-center justify-center rounded-sm border ${value
-                        ? "border-red-500 bg-red-500 text-white"
-                        : "border-zinc-700 bg-black/60 text-transparent"
+                    ? "border-red-500 bg-red-500 text-white"
+                    : "border-zinc-700 bg-black/60 text-transparent"
                     }`}
             >
                 ✓
@@ -656,143 +657,146 @@ export default function LobbyConfigPage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
-            {toast && (
-                <Toast type={toast.type} message={toast.message} onClose={closeToast} />
-            )}
+        <AdminGuard>
+            <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
+                {toast && (
+                    <Toast type={toast.type} message={toast.message} onClose={closeToast} />
+                )}
 
-            <div className="mx-auto max-w-[1600px]">
-                <div className="mb-8 flex items-start justify-between gap-6">
-                    <div>
-                        <p className="mb-3 inline-block border-b-2 border-red-500 pb-2 text-sm font-black uppercase text-red-500">
-                            Lobby Config.
-                        </p>
+                <div className="mx-auto max-w-[1600px]">
+                    <div className="mb-8 flex items-start justify-between gap-6">
+                        <div>
+                            <p className="mb-3 inline-block border-b-2 border-red-500 pb-2 text-sm font-black uppercase text-red-500">
+                                Lobby Config.
+                            </p>
 
-                        <h1 className="text-4xl font-black uppercase tracking-tight">
-                            Configuração do Lobby
-                        </h1>
+                            <h1 className="text-4xl font-black uppercase tracking-tight">
+                                Configuração do Lobby
+                            </h1>
 
-                        <p className="mt-3 text-sm text-zinc-400">
-                            Ajuste as opções principais da sessão do campeonato.
-                        </p>
+                            <p className="mt-3 text-sm text-zinc-400">
+                                Ajuste as opções principais da sessão do campeonato.
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/settings"
+                            className="rounded-lg border border-red-600 px-5 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
+                        >
+                            ← Voltar
+                        </Link>
                     </div>
 
-                    <Link
-                        href="/settings"
-                        className="rounded-lg border border-red-600 px-5 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
-                    >
-                        ← Voltar
-                    </Link>
-                </div>
-
-                <div className="grid grid-cols-1 gap-8 xl:grid-cols-[500px_1fr]">
-                    <aside className="space-y-2">
-                        {tabs.map((tab) => {
-                            const isActive = activeTab === tab.id;
-                            const Icon = tab.icon;
-
-                            return (
-                                <button
-                                    key={tab.id}
-                                    type="button"
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`group flex h-[52px] w-full items-center justify-between rounded-lg px-5 text-left text-sm font-black uppercase tracking-wide transition ${isActive
-                                            ? "bg-zinc-200 text-black"
-                                            : "bg-[#070d13] text-red-500 hover:bg-[#0b1017]"
-                                        }`}
-                                >
-                                    <span className="flex items-center gap-3">
-                                        <Icon
-                                            size={18}
-                                            className={isActive ? "text-black" : "text-red-500"}
-                                        />
-                                        {tab.label}
-                                    </span>
-
-                                    <ChevronRight
-                                        size={30}
-                                        strokeWidth={4}
-                                        className={isActive ? "text-black" : "text-red-500"}
-                                    />
-                                </button>
-                            );
-                        })}
-                    </aside>
-
-                    <section className="min-h-[470px] rounded-xl border border-zinc-800 bg-[#070d13] p-8">
-                        <div className="mb-8 flex items-start gap-4">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10">
-                                <ActiveIcon size={22} className="text-red-500" />
-                            </div>
-
-                            <div>
-                                <h2 className="text-xl font-black">{active.description}</h2>
-                                <p className="mt-2 text-sm text-zinc-400">{active.label}</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            {settings[activeTab].map((row, index) => {
-                                const disabled = isDisabled(row, activeTab);
+                    <div className="grid grid-cols-1 gap-8 xl:grid-cols-[500px_1fr]">
+                        <aside className="space-y-2">
+                            {tabs.map((tab) => {
+                                const isActive = activeTab === tab.id;
+                                const Icon = tab.icon;
 
                                 return (
-                                    <div
-                                        key={`${activeTab}-${row.label}`}
-                                        className={`grid grid-cols-1 items-center gap-4 border-b border-zinc-800 py-2 last:border-b-0 lg:grid-cols-[470px_1fr] ${disabled ? "opacity-45" : ""
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`group flex h-[52px] w-full items-center justify-between rounded-lg px-5 text-left text-sm font-black uppercase tracking-wide transition ${isActive
+                                            ? "bg-zinc-200 text-black"
+                                            : "bg-[#070d13] text-red-500 hover:bg-[#0b1017]"
                                             }`}
                                     >
-                                        <label className="text-sm font-bold">{row.label}:</label>
+                                        <span className="flex items-center gap-3">
+                                            <Icon
+                                                size={18}
+                                                className={isActive ? "text-black" : "text-red-500"}
+                                            />
+                                            {tab.label}
+                                        </span>
 
-                                        <div className="flex justify-end">
-                                            {row.type === "select" && (
-                                                <SelectControl
-                                                    value={String(row.value)}
-                                                    options={row.options}
-                                                    disabled={disabled}
-                                                    onChange={(value) => updateRow(index, value)}
-                                                />
-                                            )}
-
-                                            {row.type === "toggle" && (
-                                                <ToggleControl
-                                                    value={Boolean(row.value)}
-                                                    disabled={disabled}
-                                                    onChange={(value) => updateRow(index, value)}
-                                                />
-                                            )}
-
-                                            {row.type === "checkbox" && (
-                                                <CheckboxControl
-                                                    value={Boolean(row.value)}
-                                                    onChange={(value) => updateRow(index, value)}
-                                                />
-                                            )}
-
-                                            {row.type === "range" && (
-                                                <RangeControl
-                                                    value={Number(row.value)}
-                                                    onChange={(value) => updateRow(index, value)}
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
+                                        <ChevronRight
+                                            size={30}
+                                            strokeWidth={4}
+                                            className={isActive ? "text-black" : "text-red-500"}
+                                        />
+                                    </button>
                                 );
                             })}
-                        </div>
-                    </section>
-                </div>
+                        </aside>
 
-                <div className="mt-7 flex justify-center">
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="rounded-lg bg-red-600 px-8 py-3 text-sm font-black uppercase transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        {saving ? "Salvando..." : "Salvar alterações"}
-                    </button>
+                        <section className="min-h-[470px] rounded-xl border border-zinc-800 bg-[#070d13] p-8">
+                            <div className="mb-8 flex items-start gap-4">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10">
+                                    <ActiveIcon size={22} className="text-red-500" />
+                                </div>
+
+                                <div>
+                                    <h2 className="text-xl font-black">{active.description}</h2>
+                                    <p className="mt-2 text-sm text-zinc-400">{active.label}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                {settings[activeTab].map((row, index) => {
+                                    const disabled = isDisabled(row, activeTab);
+
+                                    return (
+                                        <div
+                                            key={`${activeTab}-${row.label}`}
+                                            className={`grid grid-cols-1 items-center gap-4 border-b border-zinc-800 py-2 last:border-b-0 lg:grid-cols-[470px_1fr] ${disabled ? "opacity-45" : ""
+                                                }`}
+                                        >
+                                            <label className="text-sm font-bold">{row.label}:</label>
+
+                                            <div className="flex justify-end">
+                                                {row.type === "select" && (
+                                                    <SelectControl
+                                                        value={String(row.value)}
+                                                        options={row.options}
+                                                        disabled={disabled}
+                                                        onChange={(value) => updateRow(index, value)}
+                                                    />
+                                                )}
+
+                                                {row.type === "toggle" && (
+                                                    <ToggleControl
+                                                        value={Boolean(row.value)}
+                                                        disabled={disabled}
+                                                        onChange={(value) => updateRow(index, value)}
+                                                    />
+                                                )}
+
+                                                {row.type === "checkbox" && (
+                                                    <CheckboxControl
+                                                        value={Boolean(row.value)}
+                                                        onChange={(value) => updateRow(index, value)}
+                                                    />
+                                                )}
+
+                                                {row.type === "range" && (
+                                                    <RangeControl
+                                                        value={Number(row.value)}
+                                                        onChange={(value) => updateRow(index, value)}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </section>
+                    </div>
+
+                    <div className="mt-7 flex justify-center">
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="rounded-lg bg-red-600 px-8 py-3 text-sm font-black uppercase transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {saving ? "Salvando..." : "Salvar alterações"}
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </AdminGuard>
     );
+
 }

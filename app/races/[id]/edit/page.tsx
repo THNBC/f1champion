@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import AdminGuard from "@/components/AdminGuard";
 
 type Driver = {
     id: string;
@@ -587,6 +588,7 @@ export default function EditRaceResultsPage() {
     }
 
     return (
+        <AdminGuard>
         <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
             {toast && (
                 <div
@@ -1004,5 +1006,6 @@ export default function EditRaceResultsPage() {
                 </div>
             </div>
         </main>
+        </AdminGuard>
     );
 }

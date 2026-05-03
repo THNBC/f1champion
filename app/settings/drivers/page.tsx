@@ -1,5 +1,6 @@
 "use client";
 
+import AdminGuard from "@/components/AdminGuard";
 import { supabase } from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -331,6 +332,7 @@ export default function SettingsDriversPage() {
   }
 
   return (
+    <AdminGuard>
     <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
       {toast && (
         <div
@@ -476,5 +478,6 @@ export default function SettingsDriversPage() {
         </div>
       </div>
     </main>
+    </AdminGuard>
   );
 }
