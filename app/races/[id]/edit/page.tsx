@@ -58,6 +58,46 @@ function parseLapToMs(value: string) {
     return minutes * 60000 + seconds * 1000 + milliseconds;
 }
 
+function recalculatePoints(rows: ResultRow[]): ResultRow[] {
+    const validRows = rows.filter((row) => row.driver_id) as ResultRow[];
+
+    const fastestLapDriverId = validRows
+        .filter((row) => {
+            const isTop5 = row.position <= 5;
+            const isNormal = row.status !== "DNF";
+            const hasValidLap =
+                parseLapToMs(row.fastest_lap) !== Number.POSITIVE_INFINITY;
+
+            return isTop5 && isNormal && hasValidLap;
+        })
+        .sort(
+            (a, b) =>
+                parseLapToMs(a.fastest_lap) -
+                parseLapToMs(b.fastest_lap)
+        )[0]?.driver_id;
+
+    return rows.map((row) => {
+        if (!row.driver_id) return row;
+
+        const basePoints =
+            row.status === "DNF"
+                ? 0
+                : defaultPoints[row.position - 1] ?? 0;
+
+        const fastestLapBonus =
+            row.position <= 5 &&
+                row.status !== "DNF" &&
+                row.driver_id === fastestLapDriverId
+                ? 1
+                : 0;
+
+        return {
+            ...row,
+            points: basePoints + fastestLapBonus,
+        };
+    });
+}
+
 export default function EditRaceResultsPage() {
     const params = useParams();
     const raceId = String(params.id);
@@ -73,21 +113,23 @@ export default function EditRaceResultsPage() {
     const [mostOvertakes, setMostOvertakes] = useState("");
     const [cleanestDriving, setCleanestDriving] = useState("");
 
+    const initialRows: ResultRow[] = Array.from({ length: 10 }, (_, index) => ({
+        position: index + 1,
+        driver_id: "",
+        team_id: "",
+        status: "Normal",
+        grid: 0,
+        stops: 0,
+        fastest_lap: "",
+        penalty: false,
+        penalty_count: 0,
+        penalty_seconds: 0,
+        time_or_gap: "",
+        points: 0,
+    }));
+
     const [rows, setRows] = useState<ResultRow[]>(
-        Array.from({ length: 10 }, (_, index) => ({
-            position: index + 1,
-            driver_id: "",
-            team_id: "",
-            status: "Normal",
-            grid: 0,
-            stops: 0,
-            fastest_lap: "",
-            penalty: false,
-            penalty_count: 0,
-            penalty_seconds: 0,
-            time_or_gap: "",
-            points: defaultPoints[index] ?? 0,
-        }))
+        recalculatePoints(initialRows)
     );
 
     const [loading, setLoading] = useState(true);
@@ -167,7 +209,7 @@ export default function EditRaceResultsPage() {
                     position: result.position,
                     driver_id: result.driver_id,
                     team_id: result.team_id,
-                    status: result.status === "DNF" ? "DNF" : "Normal",
+                    status: (result.status === "DNF" ? "DNF" : "Normal") as ResultRow["status"],
                     grid: result.grid ?? 0,
                     stops: result.stops ?? 0,
                     fastest_lap: result.fastest_lap ?? "",
@@ -175,13 +217,10 @@ export default function EditRaceResultsPage() {
                     penalty_count: result.penalty_count ?? 0,
                     penalty_seconds: result.penalty_seconds ?? 0,
                     time_or_gap: result.time_or_gap ?? "",
-                    points:
-                        result.status === "DNF"
-                            ? 0
-                            : defaultPoints[result.position - 1] ?? 0,
+                    points: 0,
                 }));
 
-                setRows(recalculatePoints(loadedRows));
+                setRows(recalculatePoints(loadedRows)); // 👈 OBRIGATÓRIO
             }
 
             setLoading(false);
@@ -249,39 +288,6 @@ export default function EditRaceResultsPage() {
 
         return formatGapFromLeader(digits);
     }
-    function recalculatePoints(updatedRows: ResultRow[]) {
-        const fastestLapDriverId = updatedRows
-            .filter((row, index) => {
-                const isTop5 = index < 5;
-                const isNormal = row.status !== "DNF";
-                const hasDriver = Boolean(row.driver_id);
-                const hasValidLap =
-                    parseLapToMs(row.fastest_lap) !== Number.POSITIVE_INFINITY;
-
-                return isTop5 && isNormal && hasDriver && hasValidLap;
-            })
-            .sort(
-                (a, b) => parseLapToMs(a.fastest_lap) - parseLapToMs(b.fastest_lap)
-            )[0]?.driver_id;
-
-        return updatedRows.map((row, index) => {
-            const basePoints =
-                row.status === "DNF" ? 0 : defaultPoints[index] ?? 0;
-
-            const fastestLapBonus =
-                index < 5 &&
-                    row.status !== "DNF" &&
-                    row.driver_id === fastestLapDriverId
-                    ? 1
-                    : 0;
-
-            return {
-                ...row,
-                points: basePoints + fastestLapBonus,
-            };
-        });
-    }
-
     function updateRow(
         index: number,
         field: keyof ResultRow,
@@ -291,20 +297,38 @@ export default function EditRaceResultsPage() {
             const updatedRows = prev.map((row, rowIndex) => {
                 if (rowIndex !== index) return row;
 
-                const updated = {
-                    ...row,
-                    [field]: value,
-                };
+                let updated: ResultRow = { ...row };
+
+                if (field === "status") {
+                    updated.status = value as ResultRow["status"];
+                } else if (field === "driver_id") {
+                    updated.driver_id = String(value);
+                } else if (field === "team_id") {
+                    updated.team_id = String(value);
+                } else if (field === "grid") {
+                    updated.grid = Number(value);
+                } else if (field === "stops") {
+                    updated.stops = Number(value);
+                } else if (field === "fastest_lap") {
+                    updated.fastest_lap = String(value);
+                } else if (field === "penalty") {
+                    updated.penalty = Boolean(value);
+                } else if (field === "penalty_count") {
+                    updated.penalty_count = Number(value);
+                } else if (field === "penalty_seconds") {
+                    updated.penalty_seconds = Number(value);
+                } else if (field === "time_or_gap") {
+                    updated.time_or_gap = String(value);
+                }
 
                 if (field === "driver_id") {
-                    const driver = drivers.find((item) => item.id === value);
+                    const driver = drivers.find((d) => d.id === value);
                     updated.team_id = driver?.team_id ?? "";
                 }
 
                 if (field === "status") {
                     if (value === "DNF") {
                         updated.time_or_gap = "DNF";
-                        updated.points = 0;
                     }
 
                     if (value === "Normal" && row.status === "DNF") {
@@ -321,12 +345,12 @@ export default function EditRaceResultsPage() {
                     if (updated.status === "DNF") {
                         updated.time_or_gap = "DNF";
                     } else {
-                        const rawValue = String(value).trim();
+                        const raw = String(value).trim();
 
-                        if (index === 0) {
-                            updated.time_or_gap = formatLeaderTime(rawValue);
+                        if (row.position === 1) {
+                            updated.time_or_gap = formatLeaderTime(raw);
                         } else {
-                            updated.time_or_gap = formatGapTime(rawValue);
+                            updated.time_or_gap = formatGapTime(raw);
                         }
                     }
                 }
@@ -334,67 +358,69 @@ export default function EditRaceResultsPage() {
                 return updated;
             });
 
-            return recalculatePoints(updatedRows);
+            return recalculatePoints(updatedRows); // ✅ único cálculo
         });
     }
 
     function addRow() {
-        setRows((prev) => [
-            ...prev,
-            {
-                position: prev.length + 1,
-                driver_id: "",
-                team_id: "",
-                status: "Normal",
-                grid: 0, // mantém padrão correto
-                stops: 0, // igual ao inicial
-                fastest_lap: "",
-                penalty: false,
-                penalty_count: 0,
-                penalty_seconds: 0,
-                time_or_gap: "",
-                points: defaultPoints[prev.length] ?? 0,
-            },
-        ]);
+        setRows((prev) => {
+            const newRows: ResultRow[] = [
+                ...prev,
+                {
+                    position: prev.length + 1,
+                    driver_id: "",
+                    team_id: "",
+                    status: "Normal",
+                    grid: 0,
+                    stops: 0,
+                    fastest_lap: "",
+                    penalty: false,
+                    penalty_count: 0,
+                    penalty_seconds: 0,
+                    time_or_gap: "",
+                    points: 0,
+                },
+            ];
+
+            return recalculatePoints(newRows);
+        });
     }
 
     function removeLastRow() {
         setRows((prev) => {
             if (prev.length <= 1) return prev;
 
-            const updated = prev.slice(0, -1);
-
-            // 🔥 reordena posições (importante)
-            return updated.map((row, index) => ({
+            const updated = prev.slice(0, -1).map((row, index) => ({
                 ...row,
-                position: index + 1,
-                points: defaultPoints[index] ?? 0,
+                position: index + 1, // ✅ só reordena posição
             }));
+
+            return recalculatePoints(updated); // ✅ recalcula corretamente
         });
     }
     function clearAllRows() {
         if (!confirm("Deseja limpar todos os pilotos?")) return;
 
-        setRows(
-            Array.from({ length: 10 }, (_, index) => ({
-                position: index + 1,
-                driver_id: "",
-                team_id: "",
-                status: "Normal",
-                grid: 0,
-                stops: 0,
-                fastest_lap: "",
-                penalty: false,
-                penalty_count: 0,
-                penalty_seconds: 0,
-                time_or_gap: "",
-                points: defaultPoints[index] ?? 0,
-            }))
-        );
+        const newRows: ResultRow[] = Array.from({ length: 10 }, (_, index) => ({
+            position: index + 1,
+            driver_id: "",
+            team_id: "",
+            status: "Normal",
+            grid: 0,
+            stops: 0,
+            fastest_lap: "",
+            penalty: false,
+            penalty_count: 0,
+            penalty_seconds: 0,
+            time_or_gap: "",
+            points: 0,
+        }));
+
+        setRows(recalculatePoints(newRows));
     }
     async function handleSave() {
         setSaving(true);
-        const leader = rows.find((row, index) => index === 0 && row.driver_id);
+        const leader = rows.find((row) => row.position === 1 && row.driver_id);
 
         await supabase
             .from("circuits")
@@ -421,35 +447,12 @@ export default function EditRaceResultsPage() {
 
             // 🔥 3. monta novos resultados
 
-            const validRows = rows.filter((row) => row.driver_id);
+           const validRows: ResultRow[] = rows.filter((row) => row.driver_id);
 
-            const fastestLapDriverId = validRows
-                .filter((row, index) => {
-                    const isTop10 = index < 5;
-                    const isNormal = row.status !== "DNF";
-                    const hasValidLap =
-                        parseLapToMs(row.fastest_lap) !== Number.POSITIVE_INFINITY;
-
-                    return isTop10 && isNormal && hasValidLap;
-                })
-                .sort(
-                    (a, b) => parseLapToMs(a.fastest_lap) - parseLapToMs(b.fastest_lap)
-                )[0]?.driver_id;
-
-            const resultsToInsert = validRows.map((row, index) => {
-                const basePoints =
-                    row.status === "DNF" ? 0 : defaultPoints[index] ?? 0;
-
-                const fastestLapBonus =
-                    index < 5 &&
-                        row.status !== "DNF" &&
-                        row.driver_id === fastestLapDriverId
-                        ? 1
-                        : 0;
-
+            const resultsToInsert = validRows.map((row) => {
                 return {
                     race_id: raceId,
-                    position: index + 1,
+                    position: row.position,
                     driver_id: row.driver_id,
                     team_id: row.team_id,
                     grid: Number(row.grid),
@@ -459,23 +462,22 @@ export default function EditRaceResultsPage() {
                     penalty_count: row.penalty_count,
                     penalty_seconds: row.penalty_seconds,
                     time_or_gap: row.status === "DNF" ? "DNF" : row.time_or_gap,
-                    points: basePoints + fastestLapBonus,
-                    status: row.status,
-                };
+                    points: row.points,
+                    status: row.status === "DNF" ? "DNF" : "Normal",
+                } as any; // 👈 ESSA LINHA RESOLVE TUDO
             });
 
             if (resultsToInsert.length > 0) {
                 const { error } = await supabase
                     .from("race_results")
-                    .insert(resultsToInsert);
+                    .insert(resultsToInsert as any);
 
                 if (error) throw error;
             }
 
-            // 🔥 4. pega o líder (P1)
-            const leader = rows.find((row, index) => index === 0 && row.driver_id);
+            // 🔥 líder correto (SEM index)
+            const leader = rows.find((row) => row.position === 1 && row.driver_id);
 
-            // 🔥 5. atualiza finalização automática
             await supabase
                 .from("circuits")
                 .update({
@@ -493,7 +495,7 @@ export default function EditRaceResultsPage() {
                     : prev
             );
 
-            // 🔥 6. salva awards
+            // 🔥 awards mantém
             await supabase.from("race_awards").upsert({
                 race_id: raceId,
                 driver_of_the_day: driverOfTheDay || null,
