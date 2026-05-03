@@ -58,6 +58,32 @@ function parseLapToMs(value: string) {
     return minutes * 60000 + seconds * 1000 + milliseconds;
 }
 
+function getFastestLapDriverId(rows: ResultRow[]) {
+    const validRows = rows.filter((row) => row.driver_id);
+
+    const fastestLapRow = validRows
+        .filter((row) => {
+            const isNormal = row.status !== "DNF";
+            const hasValidLap =
+                parseLapToMs(row.fastest_lap) !== Number.POSITIVE_INFINITY;
+
+            return isNormal && hasValidLap;
+        })
+        .sort(
+            (a, b) =>
+                parseLapToMs(a.fastest_lap) - parseLapToMs(b.fastest_lap)
+        )[0];
+
+    if (!fastestLapRow) return null;
+
+    // 🔥 regra F1: só vale se estiver no TOP 5
+    const index = validRows.indexOf(fastestLapRow);
+
+    if (index >= 5) return null;
+
+    return fastestLapRow.driver_id;
+}
+
 export default function EditRaceResultsPage() {
     const params = useParams();
     const raceId = String(params.id);
@@ -588,6 +614,7 @@ export default function EditRaceResultsPage() {
 
         return `https://flagcdn.com/w80/${countryMap[code] || code}.png`;
     }
+    const fastestLapDriverId = getFastestLapDriverId(rows);
     if (loading) {
         return (
             <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
@@ -880,9 +907,11 @@ export default function EditRaceResultsPage() {
                                         placeholder="0:00.000"
                                         maxLength={8}
                                         onChange={(e) => updateRow(index, "fastest_lap", e.target.value)}
-                                        className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
+                                        className={`rounded-md border px-3 py-2 outline-none transition ${row.driver_id === fastestLapDriverId
+                                            ? "border-purple-500 bg-purple-500/10 text-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.35)] focus:border-purple-400"
+                                            : "border-zinc-700 bg-black/30 text-white focus:border-red-500"
+                                            }`}
                                     />
-
                                     <div className="relative flex justify-center">
                                         <button
                                             type="button"
