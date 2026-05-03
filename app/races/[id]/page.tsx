@@ -583,10 +583,10 @@ export default function RaceDetailsPage() {
 
                                             {hasPenalty && result.status !== "DNF" && (
                                                 <div className="group relative flex items-center gap-1">
-                                                    <div className="relative h-4 w-6 overflow-hidden rounded-[2px] bg-white">
+                                                    <div className="relative h-4 w-6 overflow-hidden">
+                                                        <div className="absolute inset-0 bg-white" />
                                                         <div className="absolute inset-0 bg-black [clip-path:polygon(0_0,100%_0,0_100%)]" />
                                                     </div>
-
                                                     <span className="text-xs font-black text-red-400">
                                                         +{result.penalty_seconds}s
                                                     </span>

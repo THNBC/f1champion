@@ -317,7 +317,7 @@ export default function DriverProfilePage() {
     const [circuits, setCircuits] = useState<Circuit[]>([]);
     const [awards, setAwards] = useState<RaceAward[]>([]);
     const [loading, setLoading] = useState(true);
-    
+
 
     useEffect(() => {
         async function loadData() {
@@ -372,16 +372,16 @@ export default function DriverProfilePage() {
     }, [driverId]);
 
     const sortedResults = useMemo(() => {
-    return [...results].sort((a, b) => {
-        const circuitA = circuits.find((c) => c.id === a.race_id);
-        const circuitB = circuits.find((c) => c.id === b.race_id);
+        return [...results].sort((a, b) => {
+            const circuitA = circuits.find((c) => c.id === a.race_id);
+            const circuitB = circuits.find((c) => c.id === b.race_id);
 
-        const orderA = (circuitA as any)?.calendar_order ?? 999;
-        const orderB = (circuitB as any)?.calendar_order ?? 999;
+            const orderA = (circuitA as any)?.calendar_order ?? 999;
+            const orderB = (circuitB as any)?.calendar_order ?? 999;
 
-        return orderA - orderB;
-    });
-}, [results, circuits]);
+            return orderA - orderB;
+        });
+    }, [results, circuits]);
 
     const driverPosition = useMemo(() => {
         const pointsByDriver = new Map<string, number>();
@@ -501,21 +501,21 @@ export default function DriverProfilePage() {
     const teamColor = team?.color || "#ef4444";
 
     if (loading) {
-  return (
-    <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
-      Carregando perfil do piloto...
-    </main>
-  );
-}
-    
+        return (
+            <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
+                Carregando perfil do piloto...
+            </main>
+        );
+    }
+
 
     if (!driver) {
-  return (
-    <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
-      Piloto não encontrado.
-    </main>
-  );
-}
+        return (
+            <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
+                Piloto não encontrado.
+            </main>
+        );
+    }
 
     return (
         <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
