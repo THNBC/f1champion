@@ -391,7 +391,7 @@ export default function LobbyConfigPage() {
   return (
     <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
       <div className="mx-auto max-w-[1500px]">
-        <div className="mb-8 flex items-start justify-between gap-6">
+        <div className="mb-8 flex items-start justify-start gap-6">
           <div>
             <p className="mb-3 inline-block border-b-2 border-red-500 pb-2 text-sm font-black uppercase text-red-500">
               Configuração do Lobby
@@ -406,12 +406,7 @@ export default function LobbyConfigPage() {
             </p>
           </div>
 
-          <Link
-            href="/settings"
-            className="rounded-lg border border-red-600 px-5 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
-          >
-            ← Voltar
-          </Link>
+
         </div>
 
         <section className="overflow-hidden rounded-2xl border border-zinc-800 bg-[#070d13] p-8 shadow-[0_0_50px_rgba(0,0,0,0.35)]">

@@ -163,25 +163,25 @@ export default function EditRaceResultsPage() {
             }
 
             if (resultsData && resultsData.length > 0) {
-                setRows(
-                    resultsData.map((result) => ({
-                        position: result.position,
-                        driver_id: result.driver_id,
-                        team_id: result.team_id,
-                        status: result.status === "DNF" ? "DNF" : "Normal",
-                        grid: result.grid ?? 0,
-                        stops: result.stops ?? 0,
-                        fastest_lap: result.fastest_lap ?? "",
-                        penalty: result.penalty ?? false,
-                        penalty_count: result.penalty_count ?? 0,
-                        penalty_seconds: result.penalty_seconds ?? 0,
-                        time_or_gap: result.time_or_gap ?? "",
-                        points:
-                            result.status === "DNF"
-                                ? 0
-                                : defaultPoints[result.position - 1] ?? 0,
-                    }))
-                );
+                const loadedRows: ResultRow[] = resultsData.map((result) => ({
+                    position: result.position,
+                    driver_id: result.driver_id,
+                    team_id: result.team_id,
+                    status: result.status === "DNF" ? "DNF" : "Normal",
+                    grid: result.grid ?? 0,
+                    stops: result.stops ?? 0,
+                    fastest_lap: result.fastest_lap ?? "",
+                    penalty: result.penalty ?? false,
+                    penalty_count: result.penalty_count ?? 0,
+                    penalty_seconds: result.penalty_seconds ?? 0,
+                    time_or_gap: result.time_or_gap ?? "",
+                    points:
+                        result.status === "DNF"
+                            ? 0
+                            : defaultPoints[result.position - 1] ?? 0,
+                }));
+
+                setRows(recalculatePoints(loadedRows));
             }
 
             setLoading(false);
@@ -249,13 +249,46 @@ export default function EditRaceResultsPage() {
 
         return formatGapFromLeader(digits);
     }
+    function recalculatePoints(updatedRows: ResultRow[]) {
+        const fastestLapDriverId = updatedRows
+            .filter((row, index) => {
+                const isTop5 = index < 5;
+                const isNormal = row.status !== "DNF";
+                const hasDriver = Boolean(row.driver_id);
+                const hasValidLap =
+                    parseLapToMs(row.fastest_lap) !== Number.POSITIVE_INFINITY;
+
+                return isTop5 && isNormal && hasDriver && hasValidLap;
+            })
+            .sort(
+                (a, b) => parseLapToMs(a.fastest_lap) - parseLapToMs(b.fastest_lap)
+            )[0]?.driver_id;
+
+        return updatedRows.map((row, index) => {
+            const basePoints =
+                row.status === "DNF" ? 0 : defaultPoints[index] ?? 0;
+
+            const fastestLapBonus =
+                index < 5 &&
+                    row.status !== "DNF" &&
+                    row.driver_id === fastestLapDriverId
+                    ? 1
+                    : 0;
+
+            return {
+                ...row,
+                points: basePoints + fastestLapBonus,
+            };
+        });
+    }
+
     function updateRow(
         index: number,
         field: keyof ResultRow,
         value: string | number | boolean
     ) {
-        setRows((prev) =>
-            prev.map((row, rowIndex) => {
+        setRows((prev) => {
+            const updatedRows = prev.map((row, rowIndex) => {
                 if (rowIndex !== index) return row;
 
                 const updated = {
@@ -298,34 +331,11 @@ export default function EditRaceResultsPage() {
                     }
                 }
 
-                const tempRows = prev.map((r, i) =>
-                    i === index ? updated : r
-                );
-
-                const validRows = tempRows.filter((row) => row.driver_id);
-
-                const fastestLapDriverId = validRows
-                    .filter((row, i) => {
-                        const isTop10 = i < 10;
-                        const isNormal = row.status !== "DNF";
-                        const hasValidLap =
-                            parseLapToMs(row.fastest_lap) !== Number.POSITIVE_INFINITY;
-
-                        return isTop10 && isNormal && hasValidLap;
-                    })
-                    .sort(
-                        (a, b) => parseLapToMs(a.fastest_lap) - parseLapToMs(b.fastest_lap)
-                    )[0]?.driver_id;
-
-                updated.points =
-                    updated.status === "DNF"
-                        ? 0
-                        : (defaultPoints[index] ?? 0) +
-                        (index < 5 && updated.driver_id === fastestLapDriverId ? 1 : 0);
-
                 return updated;
-            })
-        );
+            });
+
+            return recalculatePoints(updatedRows);
+        });
     }
 
     function addRow() {
@@ -589,30 +599,30 @@ export default function EditRaceResultsPage() {
 
     return (
         <AdminGuard>
-        <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
-            {toast && (
-                <div
-                    className={`fixed bottom-10 left-1/2 z-[999] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${toast.isLeaving
+            <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
+                {toast && (
+                    <div
+                        className={`fixed bottom-10 left-1/2 z-[999] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${toast.isLeaving
                             ? "translate-y-4 scale-95 opacity-0 blur-[2px]"
                             : "translate-y-0 scale-100 opacity-100 blur-0"
-                        }`}
-                >
-                    <div
-                        className={`animate-toast-in rounded-xl border px-6 py-4 shadow-2xl backdrop-blur-md ${toast.type === "success"
-                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
-                                : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
                             }`}
                     >
-                        <p className="text-xs font-black uppercase tracking-wide text-center">
-                            {toast.type === "success" ? "Sucesso" : "Erro"}
-                        </p>
+                        <div
+                            className={`animate-toast-in rounded-xl border px-6 py-4 shadow-2xl backdrop-blur-md ${toast.type === "success"
+                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
+                                : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
+                                }`}
+                        >
+                            <p className="text-xs font-black uppercase tracking-wide text-center">
+                                {toast.type === "success" ? "Sucesso" : "Erro"}
+                            </p>
 
-                        <p className="mt-1 text-sm font-bold text-white text-center">
-                            {toast.message}
-                        </p>
-                    </div>
+                            <p className="mt-1 text-sm font-bold text-white text-center">
+                                {toast.message}
+                            </p>
+                        </div>
 
-                    <style jsx>{`
+                        <style jsx>{`
                         @keyframes toastIn {
                             0% {
                                 opacity: 0;
@@ -629,383 +639,383 @@ export default function EditRaceResultsPage() {
                             animation: toastIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
                         }
                     `}</style>
-                </div>
-            )}
+                    </div>
+                )}
 
-            <div className="mx-auto max-w-[1500px]">
-                <div className="mb-8 flex items-start justify-between gap-6">
-                    <div>
-                        <div className="mb-4 flex items-center gap-3 text-sm font-black uppercase text-zinc-500">
-                            <Link href="/settings" className="text-red-500 hover:text-red-400">
-                                Settings
-                            </Link>
-                            <span>›</span>
-                            <Link
-                                href="/settings/circuits"
-                                className="text-red-500 hover:text-red-400"
-                            >
-                                Circuits
-                            </Link>
-                            <span>›</span>
-                            <span>Editar resultados</span>
+                <div className="mx-auto max-w-[1500px]">
+                    <div className="mb-8 flex items-start justify-between gap-6">
+                        <div>
+                            <div className="mb-4 flex items-center gap-3 text-sm font-black uppercase text-zinc-500">
+                                <Link href="/settings" className="text-red-500 hover:text-red-400">
+                                    Settings
+                                </Link>
+                                <span>›</span>
+                                <Link
+                                    href="/settings/circuits"
+                                    className="text-red-500 hover:text-red-400"
+                                >
+                                    Circuits
+                                </Link>
+                                <span>›</span>
+                                <span>Editar resultados</span>
+                            </div>
+
+                            <h1 className="text-4xl font-black">
+                                Editar Resultados da Classificação
+                            </h1>
+
+                            <p className="mt-2 text-zinc-400">
+                                Edite os resultados da classificação da corrida abaixo.
+                            </p>
                         </div>
 
-                        <h1 className="text-4xl font-black">
-                            Editar Resultados da Classificação
-                        </h1>
-
-                        <p className="mt-2 text-zinc-400">
-                            Edite os resultados da classificação da corrida abaixo.
-                        </p>
+                        <Link
+                            href="/settings/circuits"
+                            className="rounded-lg border border-red-700 px-6 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
+                        >
+                            ← Voltar para circuitos
+                        </Link>
                     </div>
 
-                    <Link
-                        href="/settings/circuits"
-                        className="rounded-lg border border-red-700 px-6 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
-                    >
-                        ← Voltar para circuitos
-                    </Link>
-                </div>
-
-                <section className="mb-4 rounded-xl border border-zinc-800 bg-[#070d13] p-6">
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_180px_220px]">
-                        <div>
-                            <div className="flex items-center gap-4">
-                                {getCircuitFlagUrl() ? (
-                                    <img
-                                        src={getCircuitFlagUrl() ?? ""}
-                                        alt={circuit?.name ?? "Bandeira da corrida"}
-                                        className="h-8 w-12 rounded-md border border-zinc-700 object-cover shadow"
-                                    />
-                                ) : (
-                                    <span className="text-3xl">{circuit?.flag}</span>
-                                )}
-                                <div>
-                                    <div className="flex items-center gap-2">
+                    <section className="mb-4 rounded-xl border border-zinc-800 bg-[#070d13] p-6">
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_180px_220px]">
+                            <div>
+                                <div className="flex items-center gap-4">
+                                    {getCircuitFlagUrl() ? (
+                                        <img
+                                            src={getCircuitFlagUrl() ?? ""}
+                                            alt={circuit?.name ?? "Bandeira da corrida"}
+                                            className="h-8 w-12 rounded-md border border-zinc-700 object-cover shadow"
+                                        />
+                                    ) : (
+                                        <span className="text-3xl">{circuit?.flag}</span>
+                                    )}
+                                    <div>
                                         <div className="flex items-center gap-2">
-                                            <h2 className="text-xl font-black">{circuit?.name}</h2>
+                                            <div className="flex items-center gap-2">
+                                                <h2 className="text-xl font-black">{circuit?.name}</h2>
 
 
+                                            </div>
+
+                                            {circuit?.is_finished && (
+                                                <span className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase text-emerald-400">
+                                                    ✓ Concluída
+                                                </span>
+                                            )}
                                         </div>
-
-                                        {circuit?.is_finished && (
-                                            <span className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase text-emerald-400">
-                                                ✓ Concluída
-                                            </span>
-                                        )}
+                                        <p className="text-sm text-zinc-400">{circuit?.location}</p>
                                     </div>
-                                    <p className="text-sm text-zinc-400">{circuit?.location}</p>
                                 </div>
                             </div>
+
+                            <label className="block">
+                                <span className="mb-2 block text-sm font-bold text-zinc-400">
+                                    Voltas
+                                </span>
+                                <input
+                                    value={laps}
+                                    onChange={(e) => setLaps(e.target.value)}
+                                    className="w-full rounded-md border border-zinc-700 bg-black/30 px-3 py-3 outline-none focus:border-red-500"
+                                />
+                            </label>
+
+                            <label className="block">
+                                <span className="mb-2 block text-sm font-bold text-zinc-400">
+                                    Data
+                                </span>
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    className="w-full rounded-md border border-zinc-700 bg-[#05080d] px-3 py-3 text-white outline-none focus:border-red-500 [color-scheme:dark]"
+                                />
+                            </label>
                         </div>
+                    </section>
 
-                        <label className="block">
-                            <span className="mb-2 block text-sm font-bold text-zinc-400">
-                                Voltas
-                            </span>
-                            <input
-                                value={laps}
-                                onChange={(e) => setLaps(e.target.value)}
-                                className="w-full rounded-md border border-zinc-700 bg-black/30 px-3 py-3 outline-none focus:border-red-500"
-                            />
-                        </label>
-
-                        <label className="block">
-                            <span className="mb-2 block text-sm font-bold text-zinc-400">
-                                Data
-                            </span>
-                            <input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full rounded-md border border-zinc-700 bg-[#05080d] px-3 py-3 text-white outline-none focus:border-red-500 [color-scheme:dark]"
-                            />
-                        </label>
-                    </div>
-                </section>
-
-                <section className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-zinc-800 bg-[#070d13] p-5 lg:grid-cols-3">
-                    {[
-                        {
-                            icon: "🏆",
-                            label: "Piloto do dia",
-                            value: driverOfTheDay,
-                            setter: setDriverOfTheDay,
-                        },
-                        {
-                            icon: "↔",
-                            label: "Mais ultrapassagens",
-                            value: mostOvertakes,
-                            setter: setMostOvertakes,
-                        },
-                        {
-                            icon: "🛡",
-                            label: "Pilotagem limpa",
-                            value: cleanestDriving,
-                            setter: setCleanestDriving,
-                        },
-                    ].map((item) => (
-                        <label key={item.label} className="block">
-                            <div className="mb-2 flex items-center gap-3 text-sm font-bold text-zinc-400">
-                                <span className="text-2xl">{item.icon}</span>
-                                <span>{item.label}</span>
-                            </div>
-
-                            <select
-                                value={item.value || ""}
-                                onChange={(e) => item.setter(e.target.value)}
-                                className={`w-full rounded-md border border-zinc-700 bg-[#05080d] px-3 py-3 outline-none focus:border-red-500 appearance-none ${!item.value ? "text-zinc-500" : "text-white"
-                                    }`}
-                            >
-                                <option value="" disabled hidden>
-                                    Selecionar piloto
-                                </option>
-
-                                {drivers.map((driver) => (
-                                    <option
-                                        key={driver.id}
-                                        value={driver.id}
-                                        className="bg-[#05080d] text-white"
-                                    >
-                                        {driver.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                    ))}
-                </section>
-
-                <section className="rounded-xl border border-zinc-800 bg-[#070d13] p-5">
-                    <div className="mb-3 grid grid-cols-[50px_1.4fr_1.2fr_110px_80px_90px_130px_90px_130px_70px] gap-3 text-xs font-black uppercase text-zinc-500">
-                        <span>Pos</span>
-                        <span>Piloto</span>
-                        <span>Equipe</span>
-                        <span>Status</span>
-                        <span>Grid</span>
-                        <span>Paradas</span>
-                        <span>Melhor volta</span>
-                        <span>Punição</span>
-                        <span>Tempo total</span>
-                        <span>Pts</span>
-                    </div>
-
-                    <div className="space-y-2">
-                        {rows.map((row, index) => (
-                            <div
-                                key={index}
-                                className="grid grid-cols-[50px_1.4fr_1.2fr_110px_80px_90px_130px_90px_130px_70px] items-center gap-3"
-                            >
-                                <span className="font-bold">{index + 1}</span>
+                    <section className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-zinc-800 bg-[#070d13] p-5 lg:grid-cols-3">
+                        {[
+                            {
+                                icon: "🏆",
+                                label: "Piloto do dia",
+                                value: driverOfTheDay,
+                                setter: setDriverOfTheDay,
+                            },
+                            {
+                                icon: "↔",
+                                label: "Mais ultrapassagens",
+                                value: mostOvertakes,
+                                setter: setMostOvertakes,
+                            },
+                            {
+                                icon: "🛡",
+                                label: "Pilotagem limpa",
+                                value: cleanestDriving,
+                                setter: setCleanestDriving,
+                            },
+                        ].map((item) => (
+                            <label key={item.label} className="block">
+                                <div className="mb-2 flex items-center gap-3 text-sm font-bold text-zinc-400">
+                                    <span className="text-2xl">{item.icon}</span>
+                                    <span>{item.label}</span>
+                                </div>
 
                                 <select
-                                    value={row.driver_id || ""}
-                                    onChange={(e) => updateRow(index, "driver_id", e.target.value)}
-                                    className={`rounded-md border border-zinc-700 bg-[#05080d] px-3 py-2 outline-none transition focus:border-red-500 appearance-none ${!row.driver_id ? "text-zinc-500" : "text-white"
+                                    value={item.value || ""}
+                                    onChange={(e) => item.setter(e.target.value)}
+                                    className={`w-full rounded-md border border-zinc-700 bg-[#05080d] px-3 py-3 outline-none focus:border-red-500 appearance-none ${!item.value ? "text-zinc-500" : "text-white"
                                         }`}
                                 >
                                     <option value="" disabled hidden>
                                         Selecionar piloto
                                     </option>
 
-                                    {drivers
-                                        .filter((driver) => {
-                                            const alreadySelected = rows.some(
-                                                (otherRow) =>
-                                                    otherRow !== row &&
-                                                    otherRow.driver_id === driver.id
-                                            );
-
-                                            return !alreadySelected;
-                                        })
-                                        .map((driver) => (
-                                            <option
-                                                key={driver.id}
-                                                value={driver.id}
-                                                className="bg-[#05080d] text-white"
-                                            >
-                                                {driver.name}
-                                            </option>
-                                        ))}
+                                    {drivers.map((driver) => (
+                                        <option
+                                            key={driver.id}
+                                            value={driver.id}
+                                            className="bg-[#05080d] text-white"
+                                        >
+                                            {driver.name}
+                                        </option>
+                                    ))}
                                 </select>
+                            </label>
+                        ))}
+                    </section>
 
-                                <div className="rounded-md border border-zinc-700 bg-black/20 px-3 py-2 text-sm text-zinc-300">
-                                    {getTeamName(row.team_id)}
-                                </div>
+                    <section className="rounded-xl border border-zinc-800 bg-[#070d13] p-5">
+                        <div className="mb-3 grid grid-cols-[50px_1.4fr_1.2fr_110px_80px_90px_130px_90px_130px_70px] gap-3 text-xs font-black uppercase text-zinc-500">
+                            <span>Pos</span>
+                            <span>Piloto</span>
+                            <span>Equipe</span>
+                            <span>Status</span>
+                            <span>Grid</span>
+                            <span>Paradas</span>
+                            <span>Melhor volta</span>
+                            <span>Punição</span>
+                            <span>Tempo total</span>
+                            <span>Pts</span>
+                        </div>
 
-                                <select
-                                    value={row.status || "Normal"}
-                                    onChange={(e) =>
-                                        updateRow(index, "status", e.target.value as ResultRow["status"])
-                                    }
-                                    className={`rounded-md border border-zinc-700 bg-[#05080d] px-3 py-2 outline-none transition focus:border-red-500 appearance-none ${!row.status ? "text-zinc-500" : "text-white"
-                                        }`}
+                        <div className="space-y-2">
+                            {rows.map((row, index) => (
+                                <div
+                                    key={index}
+                                    className="grid grid-cols-[50px_1.4fr_1.2fr_110px_80px_90px_130px_90px_130px_70px] items-center gap-3"
                                 >
-                                    <option value="Normal" className="bg-[#05080d] text-white">
-                                        Normal
-                                    </option>
-                                    <option value="DNF" className="bg-[#05080d] text-white">
-                                        DNF
-                                    </option>
-                                </select>
+                                    <span className="font-bold">{index + 1}</span>
 
-                                <input
-                                    value={row.grid === 0 ? "" : row.grid}
-                                    placeholder="0"
-                                    onChange={(e) =>
-                                        updateRow(index, "grid", e.target.value === "" ? 0 : Number(e.target.value))
-                                    }
-                                    className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
-                                />
-
-                                <input
-                                    value={row.stops === 0 ? "" : row.stops}
-                                    placeholder="0"
-                                    onChange={(e) =>
-                                        updateRow(index, "stops", e.target.value === "" ? 0 : Number(e.target.value))
-                                    }
-                                    className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
-                                />
-
-                                <input
-                                    value={row.fastest_lap}
-                                    placeholder="0:00.000"
-                                    maxLength={8}
-                                    onChange={(e) => updateRow(index, "fastest_lap", e.target.value)}
-                                    className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
-                                />
-
-                                <div className="relative flex justify-center">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const nextValue = !row.penalty;
-
-                                            updateRow(index, "penalty", nextValue);
-
-                                            if (nextValue) {
-                                                setOpenPenaltyRow(index);
-                                            } else {
-                                                updateRow(index, "penalty_count", 0);
-                                                updateRow(index, "penalty_seconds", 0);
-                                                setOpenPenaltyRow(null);
-                                            }
-                                        }}
-                                        className={`rounded-md border px-3 py-2 text-xs font-black uppercase transition ${row.penalty
-                                            ? "border-red-600 bg-red-600/15 text-red-400"
-                                            : "border-zinc-700 bg-black/30 text-zinc-400 hover:border-red-600 hover:text-red-400"
+                                    <select
+                                        value={row.driver_id || ""}
+                                        onChange={(e) => updateRow(index, "driver_id", e.target.value)}
+                                        className={`rounded-md border border-zinc-700 bg-[#05080d] px-3 py-2 outline-none transition focus:border-red-500 appearance-none ${!row.driver_id ? "text-zinc-500" : "text-white"
                                             }`}
                                     >
-                                        {row.penalty
-                                            ? `${row.penalty_count}x ${row.penalty_seconds}s`
-                                            : "Não"}
-                                    </button>
+                                        <option value="" disabled hidden>
+                                            Selecionar piloto
+                                        </option>
 
-                                    {openPenaltyRow === index && row.penalty && (
-                                        <div className="absolute right-0 top-11 z-20 w-56 rounded-xl border border-zinc-700 bg-[#05080d] p-4 shadow-2xl">
-                                            <div className="mb-3 text-xs font-black uppercase text-zinc-400">
-                                                Punição
+                                        {drivers
+                                            .filter((driver) => {
+                                                const alreadySelected = rows.some(
+                                                    (otherRow) =>
+                                                        otherRow !== row &&
+                                                        otherRow.driver_id === driver.id
+                                                );
+
+                                                return !alreadySelected;
+                                            })
+                                            .map((driver) => (
+                                                <option
+                                                    key={driver.id}
+                                                    value={driver.id}
+                                                    className="bg-[#05080d] text-white"
+                                                >
+                                                    {driver.name}
+                                                </option>
+                                            ))}
+                                    </select>
+
+                                    <div className="rounded-md border border-zinc-700 bg-black/20 px-3 py-2 text-sm text-zinc-300">
+                                        {getTeamName(row.team_id)}
+                                    </div>
+
+                                    <select
+                                        value={row.status || "Normal"}
+                                        onChange={(e) =>
+                                            updateRow(index, "status", e.target.value as ResultRow["status"])
+                                        }
+                                        className={`rounded-md border border-zinc-700 bg-[#05080d] px-3 py-2 outline-none transition focus:border-red-500 appearance-none ${!row.status ? "text-zinc-500" : "text-white"
+                                            }`}
+                                    >
+                                        <option value="Normal" className="bg-[#05080d] text-white">
+                                            Normal
+                                        </option>
+                                        <option value="DNF" className="bg-[#05080d] text-white">
+                                            DNF
+                                        </option>
+                                    </select>
+
+                                    <input
+                                        value={row.grid === 0 ? "" : row.grid}
+                                        placeholder="0"
+                                        onChange={(e) =>
+                                            updateRow(index, "grid", e.target.value === "" ? 0 : Number(e.target.value))
+                                        }
+                                        className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
+                                    />
+
+                                    <input
+                                        value={row.stops === 0 ? "" : row.stops}
+                                        placeholder="0"
+                                        onChange={(e) =>
+                                            updateRow(index, "stops", e.target.value === "" ? 0 : Number(e.target.value))
+                                        }
+                                        className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
+                                    />
+
+                                    <input
+                                        value={row.fastest_lap}
+                                        placeholder="0:00.000"
+                                        maxLength={8}
+                                        onChange={(e) => updateRow(index, "fastest_lap", e.target.value)}
+                                        className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500"
+                                    />
+
+                                    <div className="relative flex justify-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const nextValue = !row.penalty;
+
+                                                updateRow(index, "penalty", nextValue);
+
+                                                if (nextValue) {
+                                                    setOpenPenaltyRow(index);
+                                                } else {
+                                                    updateRow(index, "penalty_count", 0);
+                                                    updateRow(index, "penalty_seconds", 0);
+                                                    setOpenPenaltyRow(null);
+                                                }
+                                            }}
+                                            className={`rounded-md border px-3 py-2 text-xs font-black uppercase transition ${row.penalty
+                                                ? "border-red-600 bg-red-600/15 text-red-400"
+                                                : "border-zinc-700 bg-black/30 text-zinc-400 hover:border-red-600 hover:text-red-400"
+                                                }`}
+                                        >
+                                            {row.penalty
+                                                ? `${row.penalty_count}x ${row.penalty_seconds}s`
+                                                : "Não"}
+                                        </button>
+
+                                        {openPenaltyRow === index && row.penalty && (
+                                            <div className="absolute right-0 top-11 z-20 w-56 rounded-xl border border-zinc-700 bg-[#05080d] p-4 shadow-2xl">
+                                                <div className="mb-3 text-xs font-black uppercase text-zinc-400">
+                                                    Punição
+                                                </div>
+
+                                                <label className="mb-3 block">
+                                                    <span className="mb-1 block text-[11px] font-bold uppercase text-zinc-500">
+                                                        Quantidade
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        value={row.penalty_count}
+                                                        onChange={(e) =>
+                                                            updateRow(index, "penalty_count", Number(e.target.value))
+                                                        }
+                                                        className="w-full rounded-md border border-zinc-700 bg-black/40 px-3 py-2 text-sm outline-none focus:border-red-500"
+                                                    />
+                                                </label>
+
+                                                <label className="block">
+                                                    <span className="mb-1 block text-[11px] font-bold uppercase text-zinc-500">
+                                                        Segundos adicionados
+                                                    </span>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={row.penalty_seconds}
+                                                        onChange={(e) =>
+                                                            updateRow(index, "penalty_seconds", Number(e.target.value))
+                                                        }
+                                                        className="w-full rounded-md border border-zinc-700 bg-black/40 px-3 py-2 text-sm outline-none focus:border-red-500"
+                                                    />
+                                                </label>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setOpenPenaltyRow(null)}
+                                                    className="mt-4 w-full rounded-md bg-red-600 px-3 py-2 text-xs font-black uppercase transition hover:bg-red-500"
+                                                >
+                                                    Confirmar
+                                                </button>
                                             </div>
+                                        )}
+                                    </div>
 
-                                            <label className="mb-3 block">
-                                                <span className="mb-1 block text-[11px] font-bold uppercase text-zinc-500">
-                                                    Quantidade
-                                                </span>
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    value={row.penalty_count}
-                                                    onChange={(e) =>
-                                                        updateRow(index, "penalty_count", Number(e.target.value))
-                                                    }
-                                                    className="w-full rounded-md border border-zinc-700 bg-black/40 px-3 py-2 text-sm outline-none focus:border-red-500"
-                                                />
-                                            </label>
+                                    <input
+                                        value={row.time_or_gap}
+                                        placeholder={index === 0 ? "00:00.000" : "+00.000"}
+                                        maxLength={index === 0 ? 9 : 8}
+                                        disabled={row.status === "DNF"}
+                                        onChange={(e) => updateRow(index, "time_or_gap", e.target.value)}
+                                        className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                                    />
 
-                                            <label className="block">
-                                                <span className="mb-1 block text-[11px] font-bold uppercase text-zinc-500">
-                                                    Segundos adicionados
-                                                </span>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={row.penalty_seconds}
-                                                    onChange={(e) =>
-                                                        updateRow(index, "penalty_seconds", Number(e.target.value))
-                                                    }
-                                                    className="w-full rounded-md border border-zinc-700 bg-black/40 px-3 py-2 text-sm outline-none focus:border-red-500"
-                                                />
-                                            </label>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => setOpenPenaltyRow(null)}
-                                                className="mt-4 w-full rounded-md bg-red-600 px-3 py-2 text-xs font-black uppercase transition hover:bg-red-500"
-                                            >
-                                                Confirmar
-                                            </button>
-                                        </div>
-                                    )}
+                                    <input
+                                        value={row.points}
+                                        readOnly
+                                        className="rounded-md border border-zinc-700 bg-black/20 px-3 py-2 text-zinc-400 outline-none"
+                                    />
                                 </div>
+                            ))}
+                        </div>
 
-                                <input
-                                    value={row.time_or_gap}
-                                    placeholder={index === 0 ? "00:00.000" : "+00.000"}
-                                    maxLength={index === 0 ? 9 : 8}
-                                    disabled={row.status === "DNF"}
-                                    onChange={(e) => updateRow(index, "time_or_gap", e.target.value)}
-                                    className="rounded-md border border-zinc-700 bg-black/30 px-3 py-2 outline-none focus:border-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-                                />
+                        <div className="mt-4 flex flex-wrap gap-3">
+                            <button
+                                onClick={addRow}
+                                className="rounded-md border border-zinc-700 px-5 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
+                            >
+                                + Adicionar piloto
+                            </button>
 
-                                <input
-                                    value={row.points}
-                                    readOnly
-                                    className="rounded-md border border-zinc-700 bg-black/20 px-3 py-2 text-zinc-400 outline-none"
-                                />
-                            </div>
-                        ))}
+                            <button
+                                onClick={removeLastRow}
+                                className="rounded-md border border-zinc-700 px-5 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
+                            >
+                                − Remover piloto
+                            </button>
+                            <button
+                                onClick={clearAllRows}
+                                className="rounded-md border border-zinc-700 px-5 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
+                            >
+                                Limpar
+                            </button>
+                        </div>
+                    </section>
+
+                    <div className="mt-6 flex justify-end gap-4">
+                        <Link
+                            href="/settings/circuits"
+                            className="rounded-md border border-zinc-700 px-8 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
+                        >
+                            Cancelar
+                        </Link>
+
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="rounded-md bg-red-600 px-8 py-3 text-sm font-black uppercase transition hover:bg-red-500 disabled:opacity-60"
+                        >
+                            {saving ? "Salvando..." : "Salvar resultados"}
+                        </button>
                     </div>
-
-                    <div className="mt-4 flex flex-wrap gap-3">
-                        <button
-                            onClick={addRow}
-                            className="rounded-md border border-zinc-700 px-5 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
-                        >
-                            + Adicionar piloto
-                        </button>
-
-                        <button
-                            onClick={removeLastRow}
-                            className="rounded-md border border-zinc-700 px-5 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
-                        >
-                            − Remover piloto
-                        </button>
-                        <button
-                            onClick={clearAllRows}
-                            className="rounded-md border border-zinc-700 px-5 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-yellow-500 hover:text-yellow-400"
-                        >
-                            Limpar
-                        </button>
-                    </div>
-                </section>
-
-                <div className="mt-6 flex justify-end gap-4">
-                    <Link
-                        href="/settings/circuits"
-                        className="rounded-md border border-zinc-700 px-8 py-3 text-sm font-black uppercase text-zinc-300 transition hover:border-red-600 hover:text-red-500"
-                    >
-                        Cancelar
-                    </Link>
-
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="rounded-md bg-red-600 px-8 py-3 text-sm font-black uppercase transition hover:bg-red-500 disabled:opacity-60"
-                    >
-                        {saving ? "Salvando..." : "Salvar resultados"}
-                    </button>
                 </div>
-            </div>
-        </main>
+            </main>
         </AdminGuard>
     );
 }
