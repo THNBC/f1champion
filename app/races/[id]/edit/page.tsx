@@ -5,7 +5,12 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
-import { Image as ImageIcon } from "lucide-react";
+import {
+    Image as ImageIcon,
+    Award,
+    ArrowLeftRight,
+    ShieldCheck
+} from "lucide-react";
 
 type Driver = {
     id: string;
@@ -716,7 +721,7 @@ export default function EditRaceResultsPage() {
                                         <img
                                             src={getCircuitFlagUrl() ?? ""}
                                             alt={circuit?.name ?? "Bandeira da corrida"}
-                                            className="h-8 w-12 rounded-md border border-zinc-700 object-cover shadow"
+                                            className="h-8 w-12 object-cover"
                                         />
                                     ) : (
                                         <span className="text-3xl">{circuit?.flag}</span>
@@ -768,27 +773,29 @@ export default function EditRaceResultsPage() {
                     <section className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-zinc-800 bg-[#070d13] p-5 lg:grid-cols-3">
                         {[
                             {
-                                icon: "🏆",
+                                icon: <Award size={26} />,
                                 label: "Piloto do dia",
                                 value: driverOfTheDay,
                                 setter: setDriverOfTheDay,
                             },
                             {
-                                icon: "↔",
+                                icon: <ArrowLeftRight size={26} />,
                                 label: "Mais ultrapassagens",
                                 value: mostOvertakes,
                                 setter: setMostOvertakes,
                             },
                             {
-                                icon: "🛡",
+                                icon: <ShieldCheck size={26} />,
                                 label: "Pilotagem limpa",
                                 value: cleanestDriving,
                                 setter: setCleanestDriving,
-                            },
+                            }
                         ].map((item) => (
                             <label key={item.label} className="block">
-                                <div className="mb-2 flex items-center gap-3 text-sm font-bold text-zinc-400">
-                                    <span className="text-2xl">{item.icon}</span>
+                                <div className="group mb-2 flex items-center gap-3 text-sm font-bold text-zinc-400">
+                                    <span className="text-zinc-400 group-hover:text-red-400 transition">
+                                        {item.icon}
+                                    </span>
                                     <span>{item.label}</span>
                                 </div>
 

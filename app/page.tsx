@@ -460,7 +460,7 @@ export default function HomePage() {
                   <img
                     src={getCircuitFlagUrl(nextRace?.country_code)!}
                     alt="flag"
-                    className="h-6 w-9 rounded-sm border border-zinc-700 object-cover"
+                    className="h-6 w-9 object-cover"
                   />
                 ) : (
                   <span className="h-6 w-9 rounded-sm bg-zinc-700" />
@@ -658,7 +658,7 @@ export default function HomePage() {
                     <img
                       src={getCircuitFlagUrl(selectedCircuit?.country_code)!}
                       alt="flag"
-                      className="h-4 w-6 rounded-sm border border-zinc-700 object-cover"
+                      className="h-4 w-6 object-cover"
                     />
                   ) : (
                     <span className="h-4 w-6 rounded-sm bg-zinc-700" />

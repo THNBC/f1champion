@@ -409,7 +409,7 @@ export default function SettingsDriversPage() {
               className="rounded-2xl border border-zinc-800 bg-[#070a0e] p-5"
             >
               <div className="mb-6 flex items-center gap-3">
-                <div className="h-9 w-9 overflow-hidden rounded-md border border-zinc-700 bg-black/30">
+               <div className="h-9 w-9 overflow-hidden">
                   <img
                     src={team.logo}
                     alt={team.name}

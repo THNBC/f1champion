@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { Award, ArrowLeftRight, ShieldCheck } from "lucide-react";
 
 type Driver = {
     id: string;
@@ -287,7 +288,7 @@ export default function RaceDetailsPage() {
         label,
         driverId,
     }: {
-        icon: string;
+        icon: React.ReactNode;
         label: string;
         driverId?: string | null;
     }) {
@@ -296,13 +297,11 @@ export default function RaceDetailsPage() {
         const driverImage = getDriverImage(driverId);
 
         return (
-            <div className="relative min-h-[150px] overflow-hidden rounded-xl border border-zinc-800 bg-[#070d13] p-5 transition duration-300 hover:border-red-500/40">
+            <div className="group relative min-h-[150px] overflow-hidden rounded-xl border border-zinc-800 bg-[#070d13] p-5 transition duration-300 hover:border-red-500/40">
                 <div className="relative z-10 flex h-full items-center gap-4 pr-24">
-                    <img
-                        src={icon}
-                        alt={label}
-                        className="h-9 w-9 shrink-0 object-contain"
-                    />
+                    <div className="flex h-10 w-10 items-center justify-center text-zinc-400 transition group-hover:text-red-500 group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+                        {icon}
+                    </div>
 
                     <div>
                         <p className="text-xs font-black uppercase text-zinc-500">
@@ -428,7 +427,7 @@ export default function RaceDetailsPage() {
                                     <img
                                         src={getFlagUrl(circuit?.country_code) ?? ""}
                                         alt={circuit?.country ?? "flag"}
-                                        className="h-5 w-7 rounded-sm object-cover shadow-sm"
+                                        className="h-5 w-7 object-cover"
                                     />
                                 ) : (
                                     <span>{circuit?.flag}</span>
@@ -464,19 +463,19 @@ export default function RaceDetailsPage() {
                     <div>
                         <section className="mb-5 grid grid-cols-1 gap-4 lg:grid-cols-3">
                             <HighlightCard
-                                icon="/icons/destaque.png"
+                                icon={<Award size={40} />}
                                 label="Piloto do dia"
                                 driverId={awards?.driver_of_the_day}
                             />
 
                             <HighlightCard
-                                icon="/icons/overtake.png"
+                                icon={<ArrowLeftRight size={40} />}
                                 label="Mais ultrapassagens"
                                 driverId={awards?.most_overtakes}
                             />
 
                             <HighlightCard
-                                icon="/icons/defense.png"
+                                icon={<ShieldCheck size={40} />}
                                 label="Pilotagem limpa"
                                 driverId={awards?.cleanest_driving}
                             />
@@ -541,7 +540,7 @@ export default function RaceDetailsPage() {
                                                 <img
                                                     src={teamLogo}
                                                     alt={team?.name ?? "team"}
-                                                    className="h-9 w-9 rounded object-contain"
+                                                    className="h-9 w-9 object-contain"
                                                 />
                                             )}
 
@@ -660,7 +659,7 @@ export default function RaceDetailsPage() {
                                             <div className="group relative">
                                                 <img
                                                     src={`https://flagcdn.com/w40/${circuit.country_code.toLowerCase()}.png`}
-                                                    className="h-4 w-6 rounded-sm object-cover"
+                                                    className="h-4 w-6 object-cover"
                                                     alt={
                                                         getCountryName(
                                                             circuit.country_code,

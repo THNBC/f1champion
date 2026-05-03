@@ -97,7 +97,7 @@ export default function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 flex h-screen w-[260px] flex-col justify-between border-r border-zinc-900 bg-[#050608] p-6 text-white">
-      
+
       <div>
         <div className="mb-10">
           <img src="/icons/f1-logo.png" alt="F1" className="w-30" />
@@ -112,18 +112,16 @@ export default function Sidebar() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 transition ${
-                  isActive
+                className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 transition ${isActive
                     ? "bg-white/10 text-white"
                     : "text-zinc-400 hover:bg-white/10 hover:text-red-500"
-                }`}
+                  }`}
               >
                 <span
-                  className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-red-600 transition-all duration-300 ${
-                    isActive
+                  className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-red-600 transition-all duration-300 ${isActive
                       ? "opacity-100"
                       : "opacity-0 group-hover:opacity-100"
-                  }`}
+                    }`}
                 />
 
                 <Icon size={24} className="relative z-10" />
@@ -163,7 +161,7 @@ export default function Sidebar() {
                   <img
                     src={`https://flagcdn.com/w40/${nextRace.country_code.toLowerCase()}.png`}
                     alt={countryName || "flag"}
-                    className="h-4 w-6 rounded-sm border border-zinc-700 object-cover"
+                    className="h-4 w-6 object-cover"
                   />
                 )}
 

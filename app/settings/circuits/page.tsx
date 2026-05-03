@@ -466,7 +466,7 @@ export default function SettingsCircuitsPage() {
                                                         <img
                                                             src={flagUrl}
                                                             alt={`${circuit.location} flag`}
-                                                            className="h-4 w-6 rounded-sm border border-zinc-700 object-cover"
+                                                            className="h-4 w-6 object-cover"
                                                         />
                                                     ) : (
                                                         <span className="text-lg leading-none">

@@ -4,6 +4,15 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import {
+    Flag,
+    Trophy,
+    Medal,
+    Timer,
+    BarChart3,
+    Gauge,
+    TrendingUp,
+} from "lucide-react";
 
 type Driver = {
     id: string;
@@ -603,7 +612,7 @@ export default function DriverProfilePage() {
                                         <img
                                             src={getFlagUrl(countryCode) ?? ""}
                                             alt={countryName}
-                                            className="h-5 w-8 rounded-sm border border-zinc-700 object-cover"
+                                            className="h-5 w-8 object-cover"
                                         />
                                     ) : (
                                         <span className="text-lg">🏁</span>
@@ -661,29 +670,21 @@ export default function DriverProfilePage() {
 
                     <div className="relative mx-6 mb-6 grid grid-cols-2 overflow-hidden rounded-xl border border-zinc-800 bg-black/35 backdrop-blur md:grid-cols-3 xl:grid-cols-7">
                         {[
-                            { icon: "/icons/race.png", label: "Corridas", value: stats.races },
-                            { icon: "/icons/trophy.png", label: "Vitórias", value: stats.wins },
-                            { icon: "/icons/podio.png", label: "Pódios", value: stats.podiums },
-                            { icon: "/icons/pole.png", label: "Poles", value: stats.poles },
-                            { icon: "/icons/media.png", label: "Pos. média", value: stats.averagePosition },
-                            { icon: "/icons/time.png", label: "Voltas rápidas", value: stats.fastestLaps },
-                            { icon: "◔", label: "Pontos", value: stats.points },
+                            { icon: <Flag size={40} />, label: "Corridas", value: stats.races },
+                            { icon: <Trophy size={40} />, label: "Vitórias", value: stats.wins },
+                            { icon: <Medal size={40} />, label: "Pódios", value: stats.podiums },
+                            { icon: <Timer size={40} />, label: "Poles", value: stats.poles },
+                            { icon: <BarChart3 size={40} />, label: "Pos. média", value: stats.averagePosition },
+                            { icon: <Gauge size={40} />, label: "Voltas rápidas", value: stats.fastestLaps },
+                            { icon: <TrendingUp size={40} />, label: "Pontos", value: stats.points },
                         ].map((item) => (
                             <div
                                 key={item.label}
-                                className="flex items-center gap-4 border-b border-r border-zinc-800 px-6 py-5 last:border-r-0 md:border-b-0"
+                                className="group flex items-center gap-4 border-b border-r border-zinc-800 px-6 py-5 last:border-r-0 md:border-b-0"
                             >
-                                {typeof item.icon === "string" && item.icon.startsWith("/") ? (
-                                    <img
-                                        src={item.icon}
-                                        alt={item.label}
-                                        className="h-8 w-8 object-contain"
-                                    />
-                                ) : (
-                                    <span className="text-3xl text-red-500">
-                                        {item.icon}
-                                    </span>
-                                )}
+                                <div className="text-zinc-400 transition group-hover:text-red-500 group-hover:drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+                                    {item.icon}
+                                </div>
                                 <div>
                                     <p className="text-[11px] font-black uppercase text-zinc-500">
                                         {item.label}
@@ -741,7 +742,7 @@ export default function DriverProfilePage() {
                                         <img
                                             src={getFlagUrl(circuit?.country_code) ?? ""}
                                             alt={circuit?.country ?? "País"}
-                                            className="h-5 w-8 rounded-sm object-cover"
+                                            className="h-5 w-8 object-cover"
                                         />
                                     ) : (
                                         <span>{circuit?.flag}</span>

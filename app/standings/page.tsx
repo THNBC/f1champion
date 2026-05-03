@@ -93,21 +93,19 @@ function MovementArrow({
     return (
         <span className="group relative flex h-5 w-5 items-center justify-center">
             <span
-                className={`text-[11px] font-black transition-transform duration-200 group-hover:scale-125 ${
-                    isUp
+                className={`text-[11px] font-black transition-transform duration-200 group-hover:scale-125 ${isUp
                         ? "animate-[arrowUp_0.7s_ease-out] text-emerald-500 group-hover:-translate-y-1"
                         : "animate-[arrowDown_0.7s_ease-out] text-red-500 group-hover:translate-y-1"
-                }`}
+                    }`}
             >
                 {isUp ? "▲" : "▼"}
             </span>
 
             <span
-                className={`pointer-events-none absolute left-1/2 top-7 z-30 -translate-x-1/2 whitespace-nowrap rounded-md px-3 py-2 text-[11px] font-bold opacity-0 shadow-xl transition group-hover:opacity-100 ${
-                    isUp
+                className={`pointer-events-none absolute left-1/2 top-7 z-30 -translate-x-1/2 whitespace-nowrap rounded-md px-3 py-2 text-[11px] font-bold opacity-0 shadow-xl transition group-hover:opacity-100 ${isUp
                         ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                         : "border border-red-500/40 bg-red-500/10 text-red-400"
-                }`}
+                    }`}
             >
                 {text}
             </span>
@@ -436,22 +434,20 @@ function StandingsContent() {
                 <div className="mb-6 flex gap-10 border-b border-zinc-800">
                     <button
                         onClick={() => setActiveTab("drivers")}
-                        className={`flex cursor-pointer items-center gap-3 border-b-2 px-4 py-4 text-sm font-black uppercase transition ${
-                            activeTab === "drivers"
+                        className={`flex cursor-pointer items-center gap-3 border-b-2 px-4 py-4 text-sm font-black uppercase transition ${activeTab === "drivers"
                                 ? "border-red-600 text-red-500"
                                 : "border-transparent text-zinc-500 hover:text-white"
-                        }`}
+                            }`}
                     >
                         Campeonato de Pilotos
                     </button>
 
                     <button
                         onClick={() => setActiveTab("teams")}
-                        className={`flex cursor-pointer items-center gap-3 border-b-2 px-4 py-4 text-sm font-black uppercase transition ${
-                            activeTab === "teams"
+                        className={`flex cursor-pointer items-center gap-3 border-b-2 px-4 py-4 text-sm font-black uppercase transition ${activeTab === "teams"
                                 ? "border-red-600 text-red-500"
                                 : "border-transparent text-zinc-500 hover:text-white"
-                        }`}
+                            }`}
                     >
                         Campeonato de Equipes
                     </button>
@@ -514,7 +510,7 @@ function StandingsContent() {
 
                                             <div className="flex min-w-0 items-center gap-3">
                                                 {item.team?.logo && (
-                                                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-black/30">
+                                                    <div className="h-9 w-9 shrink-0 overflow-hidden">
                                                         <img
                                                             src={item.team.logo}
                                                             alt={item.team.name}
@@ -609,7 +605,7 @@ function StandingsContent() {
 
                                             <div className="flex min-w-0 items-center gap-3">
                                                 {item.team.logo && (
-                                                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-black/30">
+                                                    <div className="h-9 w-9 shrink-0 overflow-hidden">
                                                         <img
                                                             src={item.team.logo}
                                                             alt={item.team.name}

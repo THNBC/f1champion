@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { Flag, Ruler, Trophy } from "lucide-react";
 
 type Circuit = {
   id: number;
@@ -169,9 +170,9 @@ export default function CalendarPage() {
 
     return (
       <div
-        className={`relative overflow-hidden rounded-xl border bg-[#070d13] transition-all duration-300 ${isLocked
-            ? "border-zinc-900 opacity-55"
-            : "border-zinc-800 group-hover:scale-[1.02] group-hover:bg-white/[0.03]"
+        className={`group relative overflow-hidden rounded-xl border bg-[#070d13] transition-all duration-300 ${isLocked
+          ? "border-zinc-900 opacity-55"
+          : "border-zinc-800 hover:scale-[1.02] hover:bg-white/[0.03]"
           }`}
       >
         <div className="relative h-40 w-full overflow-hidden">
@@ -209,12 +210,12 @@ export default function CalendarPage() {
               <img
                 src={flagUrl}
                 alt={circuit.country}
-                className="h-4 w-5 rounded-sm object-cover"
+                className="h-4 w-5 object-cover"
               />
             )}
 
             <span>
-              {circuit.location}, {circuit.country}
+              {circuit.location} {circuit.country}
             </span>
           </div>
 
@@ -229,14 +230,16 @@ export default function CalendarPage() {
           <div className="grid grid-cols-3 gap-2 border-t border-zinc-800 pt-3 text-xs text-zinc-400">
             <div>
               <p className="flex items-center gap-1 opacity-60">
-                🏁 <span>LAPS</span>
+                <Flag size={14} className="text-zinc-400 group-hover:text-red-400 transition" />
+                <span>LAPS</span>
               </p>
               <p className="font-medium text-white">{circuit.laps}</p>
             </div>
 
             <div>
               <p className="flex items-center gap-1 opacity-60">
-                📏 <span>DISTÂNCIA</span>
+                <Ruler size={14} className="text-zinc-400 group-hover:text-red-400 transition" />
+                <span>DISTÂNCIA</span>
               </p>
               <p className="font-medium text-white">
                 {getCircuitDistance(circuit)}
@@ -245,7 +248,8 @@ export default function CalendarPage() {
 
             <div>
               <p className="flex items-center gap-1 opacity-60">
-                🏆 <span>WINNER</span>
+                <Trophy size={14} className="text-zinc-400 group-hover:text-red-400 transition" />
+                <span>WINNER</span>
               </p>
               <p className="truncate font-medium text-white">
                 {formatWinnerName(circuit.winner)}

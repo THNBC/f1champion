@@ -533,7 +533,7 @@ export default function TeamProfilePage() {
                                     <img
                                         src={getFlagUrl(countryCode) ?? ""}
                                         alt={countryName}
-                                        className="h-5 w-8 rounded-sm object-cover"
+                                        className="h-5 w-8 object-cover"
                                     />
                                 )}
                                 <span>{countryName}</span>
@@ -645,7 +645,10 @@ export default function TeamProfilePage() {
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             {driverCards.map(({ driver, points, image }) => {
-                                const driverCountryCode = driver.country_code || null;
+                                const driverCountryCode =
+                                    driver.country_code?.toLowerCase() ||
+                                    driver.nationality?.slice(0, 2).toLowerCase() ||
+                                    null;
                                 const driverCountry = getCountryName(
                                     driverCountryCode,
                                     driver.nationality || driver.country
@@ -678,7 +681,7 @@ export default function TeamProfilePage() {
                                                     <img
                                                         src={getFlagUrl(driverCountryCode) ?? ""}
                                                         alt={driverCountry}
-                                                        className="h-4 w-6 rounded-sm object-cover"
+                                                        className="h-4 w-6 object-cover"
                                                     />
                                                 )}
                                                 <span>{driverCountry}</span>
