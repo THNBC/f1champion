@@ -19,7 +19,7 @@ export default function RootLayout({
           <Sidebar />
 
           {/* Conteúdo */}
-          <main className="ml-[260px] w-full p-8">
+         <main className="w-full p-4 md:ml-[260px] md:p-8">
             {children}
           </main>
         </div>
