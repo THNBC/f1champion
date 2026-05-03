@@ -1,10 +1,12 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
+import { calculateSessionLaps } from "@/lib/sessionDuration";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import AdminGuard from "@/components/AdminGuard";
+
 import {
     Image as ImageIcon,
     Award,
@@ -90,6 +92,7 @@ function getFastestLapDriverId(rows: ResultRow[]) {
     return fastestLapRow.driver_id;
 }
 
+
 export default function EditRaceResultsPage() {
     const params = useParams();
     const raceId = String(params.id);
@@ -167,6 +170,12 @@ export default function EditRaceResultsPage() {
                 .eq("id", raceId)
                 .single();
 
+            const { data: lobbyConfig } = await supabase
+                .from("lobby_settings")
+                .select("session_duration")
+                .eq("id", "default")
+                .maybeSingle();
+
             const { data: resultsData } = await supabase
                 .from("race_results")
                 .select("*")
@@ -184,7 +193,15 @@ export default function EditRaceResultsPage() {
 
             if (circuitData) {
                 setCircuit(circuitData);
-                setLaps(String(circuitData.laps ?? "57"));
+
+                const officialLaps = Number(circuitData.laps ?? 0);
+
+                const calculatedLaps = calculateSessionLaps(
+                    officialLaps,
+                    lobbyConfig?.session_duration
+                );
+
+                setLaps(String(calculatedLaps));
                 setDate(circuitData.date ?? "");
             }
 
@@ -425,21 +442,11 @@ export default function EditRaceResultsPage() {
     }
     async function handleSave() {
         setSaving(true);
-        const leader = rows.find((row, index) => index === 0 && row.driver_id);
-
-        await supabase
-            .from("circuits")
-            .update({
-                is_finished: Boolean(leader),
-                winner: leader ? leader.driver_id : null,
-            })
-            .eq("id", raceId);
         try {
-            // 🔥 1. salva circuito (laps + data)
+            // 🔥 1. salva circuito (data apenas)
             await supabase
                 .from("circuits")
                 .update({
-                    laps: Number(laps),
                     date: date || null,
                 })
                 .eq("id", raceId);
@@ -451,7 +458,6 @@ export default function EditRaceResultsPage() {
                 .eq("race_id", raceId);
 
             // 🔥 3. monta novos resultados
-
             const validRows = rows.filter((row) => row.driver_id);
 
             const fastestLapRow = validRows
@@ -472,7 +478,7 @@ export default function EditRaceResultsPage() {
 
                 const fastestLapBonus =
                     fastestLapRow &&
-                        validRows.indexOf(fastestLapRow) < 5 && // 🔥 só se o MAIS RÁPIDO estiver no TOP 5
+                        validRows.indexOf(fastestLapRow) < 5 &&
                         row.driver_id === fastestLapRow.driver_id &&
                         row.status !== "DNF"
                         ? 1
@@ -504,7 +510,7 @@ export default function EditRaceResultsPage() {
             }
 
             // 🔥 4. pega o líder (P1)
-            const leader = rows.find((row, index) => index === 0 && row.driver_id);
+            const leader = validRows[0];
 
             // 🔥 5. atualiza finalização automática
             await supabase

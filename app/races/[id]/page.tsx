@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Award, ArrowLeftRight, ShieldCheck } from "lucide-react";
+import { calculateSessionLaps } from "@/lib/sessionDuration";
 
 type Driver = {
     id: string;
@@ -197,6 +198,7 @@ export default function RaceDetailsPage() {
     const [teams, setTeams] = useState<Team[]>([]);
     const [awards, setAwards] = useState<Awards | null>(null);
     const [loading, setLoading] = useState(true);
+    const [sessionDuration, setSessionDuration] = useState("curta");
 
     useEffect(() => {
         async function loadData() {
@@ -227,11 +229,18 @@ export default function RaceDetailsPage() {
                 .eq("race_id", raceId)
                 .maybeSingle();
 
+            const { data: lobbyData } = await supabase
+                .from("lobby_settings")
+                .select("session_duration")
+                .eq("id", "default")
+                .maybeSingle();
+
             setCircuit(circuitData || null);
             setResults((resultsData || []) as RaceResult[]);
             setDrivers((driversData || []) as Driver[]);
             setTeams((teamsData || []) as Team[]);
             setAwards((awardsData || null) as Awards | null);
+            setSessionDuration(lobbyData?.session_duration ?? "curta");
 
             setLoading(false);
         }
@@ -390,6 +399,19 @@ export default function RaceDetailsPage() {
     const winner = results.find((result) => result.position === 1);
     const winnerDriver = getDriver(winner?.driver_id);
     const winnerTeam = getTeam(winner?.team_id);
+    const sessionLabelMap: Record<string, string> = {
+        rapida: "Rápida",
+        muito_curta: "Muito Curta",
+        curta: "Curta (25%)",
+        media: "Média (35%)",
+        longa: "Longa (50%)",
+        completa: "Completa",
+    };
+
+    const sessionLabel = sessionLabelMap[sessionDuration] ?? "Curta (25%)";
+    const sessionLaps = circuit
+        ? calculateSessionLaps(Number(circuit.laps ?? 0), sessionDuration)
+        : 0;
 
     if (loading) {
         return (
@@ -442,7 +464,7 @@ export default function RaceDetailsPage() {
                             <span>{formatDate(circuit?.date)}</span>
 
                             <span>•</span>
-                            <span>{circuit?.laps ?? "-"} Voltas</span>
+                            <span>{sessionLaps} voltas</span>
 
                             <span>•</span>
                             <span>{getCircuitDistance(circuit)}</span>
@@ -645,7 +667,7 @@ export default function RaceDetailsPage() {
                                         Voltas
                                     </p>
                                     <p className="mt-1 font-black">
-                                        {circuit?.laps ?? "-"}
+                                        {sessionLaps}
                                     </p>
                                 </div>
 
@@ -705,6 +727,12 @@ export default function RaceDetailsPage() {
                                     <span className="text-zinc-400">Tempo</span>
                                     <span className="font-bold text-yellow-400">
                                         {winner?.time_or_gap ?? "-"}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-zinc-400">Sessão</span>
+                                    <span className="font-bold text-white uppercase">
+                                        {sessionLabel}
                                     </span>
                                 </div>
                             </div>

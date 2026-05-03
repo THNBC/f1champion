@@ -4,6 +4,7 @@ import AdminGuard from "@/components/AdminGuard";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { mapSessionLabelToKey } from "@/lib/sessionDuration";
 import {
     Car,
     ChevronRight,
@@ -632,9 +633,16 @@ export default function LobbyConfigPage() {
     async function handleSave() {
         setSaving(true);
 
+        const sessionDurationLabel = settings.weekend.find(
+            (row) => row.label === "Duração da sessão"
+        )?.value;
+
+        const sessionDuration = mapSessionLabelToKey(String(sessionDurationLabel));
+
         const { error } = await supabase.from("lobby_settings").upsert({
             id: "default",
             settings,
+            session_duration: sessionDuration,
             updated_at: new Date().toISOString(),
         });
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { calculateSessionLaps } from "@/lib/sessionDuration";
 
 type Driver = {
   id: string | number;
@@ -27,6 +28,7 @@ type Circuit = {
   location?: string;
   date?: string;
   track_length?: string;
+  laps?: number;
   calendar_order?: number;
   is_finished?: boolean;
   country_code?: string;
@@ -111,6 +113,7 @@ export default function HomePage() {
   const [teamsData, setTeamsData] = useState<Team[]>([]);
   const [circuitsData, setCircuitsData] = useState<Circuit[]>([]);
   const [resultsData, setResultsData] = useState<RaceResult[]>([]);
+  const [sessionDuration, setSessionDuration] = useState("curta");
   const [loading, setLoading] = useState(true);
   const [selectedCircuitId, setSelectedCircuitId] = useState<string | null>(null);
 
@@ -118,15 +121,25 @@ export default function HomePage() {
     async function loadHomeData() {
       setLoading(true);
 
-      const [driversResponse, teamsResponse, circuitsResponse, resultsResponse] =
-        await Promise.all([
-          supabase.from("drivers").select("*"),
-          supabase.from("teams").select("*"),
-          supabase.from("circuits").select("*").order("calendar_order", {
-            ascending: true,
-          }),
-          supabase.from("race_results").select("*"),
-        ]);
+      const [
+        driversResponse,
+        teamsResponse,
+        circuitsResponse,
+        resultsResponse,
+        lobbyResponse,
+      ] = await Promise.all([
+        supabase.from("drivers").select("*"),
+        supabase.from("teams").select("*"),
+        supabase.from("circuits").select("*").order("calendar_order", {
+          ascending: true,
+        }),
+        supabase.from("race_results").select("*"),
+        supabase
+          .from("lobby_settings")
+          .select("session_duration")
+          .eq("id", "default")
+          .maybeSingle(),
+      ]);
 
       if (driversResponse.error) console.error(driversResponse.error);
       if (teamsResponse.error) console.error(teamsResponse.error);
@@ -137,6 +150,7 @@ export default function HomePage() {
       setTeamsData(teamsResponse.data ?? []);
       setCircuitsData(circuitsResponse.data ?? []);
       setResultsData(resultsResponse.data ?? []);
+      setSessionDuration(lobbyResponse.data?.session_duration ?? "curta");
 
       setLoading(false);
     }
@@ -201,6 +215,12 @@ export default function HomePage() {
     );
   }, [circuitsData]);
 
+  const nextRaceOfficialLaps = Number(nextRace?.laps ?? 0);
+
+  const nextRaceSessionLaps = nextRace
+    ? calculateSessionLaps(nextRaceOfficialLaps, sessionDuration)
+    : 0;
+
   const finishedRaces = useMemo(() => {
     return circuitsData.filter((circuit) => circuit.is_finished);
   }, [circuitsData]);
@@ -210,6 +230,12 @@ export default function HomePage() {
   const selectedCircuit =
     circuitsData.find((circuit) => String(circuit.id) === selectedCircuitId) ??
     nextRace;
+
+  const selectedCircuitOfficialLaps = Number(selectedCircuit?.laps ?? 0);
+
+  const selectedCircuitSessionLaps = selectedCircuit
+    ? calculateSessionLaps(selectedCircuitOfficialLaps, sessionDuration)
+    : 0;
 
   const selectedRaceResults = useMemo(() => {
     if (!selectedCircuit) return [];
@@ -455,33 +481,42 @@ export default function HomePage() {
                 {nextRace?.name ?? "Sem corrida"}
               </h1>
 
-              <div className="mt-6 flex items-center gap-3 text-zinc-300">
-                {getCircuitFlagUrl(nextRace?.country_code) ? (
-                  <img
-                    src={getCircuitFlagUrl(nextRace?.country_code)!}
-                    alt="flag"
-                    className="h-6 w-9 object-cover"
-                  />
-                ) : (
-                  <span className="h-6 w-9 rounded-sm bg-zinc-700" />
-                )}
+              <div className="mt-6 space-y-2">
+                {/* LOCAL + BANDEIRA */}
+                <div className="flex items-center gap-3 text-zinc-300">
+                  {getCircuitFlagUrl(nextRace?.country_code) ? (
+                    <img
+                      src={getCircuitFlagUrl(nextRace?.country_code)!}
+                      alt="flag"
+                      className="h-6 w-9 object-cover"
+                    />
+                  ) : (
+                    <span className="h-6 w-9 rounded-sm bg-zinc-700" />
+                  )}
 
-                <span className="text-sm uppercase">
-                  {nextRace?.location ?? nextRace?.circuit ?? "-"}
-                </span>
+                  <span className="text-sm uppercase">
+                    {nextRace?.location ?? nextRace?.circuit ?? "-"}
+                  </span>
+                </div>
 
-                <span className="text-zinc-500">•</span>
+                {/* DATA */}
+                <p className="text-lg font-semibold text-zinc-300">
+                  {nextRace?.date
+                    ? nextRace.date.split("-").reverse().join("/")
+                    : "Data não definida"}
+                </p>
 
-                <span className="text-sm uppercase">
+                {/* KM + VOLTAS */}
+                <p className="text-sm font-bold uppercase text-white">
                   {nextRace?.track_length ?? "-"}
-                </span>
-              </div>
 
-              <p className="mt-5 text-xl font-semibold text-zinc-200">
-                {nextRace?.date
-                  ? nextRace.date.split("-").reverse().join("/")
-                  : "Data não definida"}
-              </p>
+                  {nextRace?.track_length && nextRaceSessionLaps > 0 && <span> • </span>}
+
+                  {nextRaceSessionLaps > 0 && (
+                    <span>{nextRaceSessionLaps} voltas</span>
+                  )}
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -667,16 +702,24 @@ export default function HomePage() {
                   <span>{selectedCircuit?.location ?? selectedCircuit?.circuit ?? "-"}</span>
                 </div>
 
-                <div className="mt-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                  <span>
+                <div className="mt-3 space-y-1 text-xs font-semibold uppercase tracking-wide">
+                  <p className="text-zinc-500">
                     {selectedCircuit?.date
                       ? selectedCircuit.date.split("-").reverse().join("/")
                       : "-"}
-                  </span>
+                  </p>
 
-                  <span>•</span>
+                  <p className="text-zinc-300">
+                    {selectedCircuit?.track_length ?? "-"}
 
-                  <span>{selectedCircuit?.track_length ?? "-"}</span>
+                    {selectedCircuit?.track_length && selectedCircuitSessionLaps > 0 && (
+                      <span> • </span>
+                    )}
+
+                    {selectedCircuitSessionLaps > 0 && (
+                      <span>{selectedCircuitSessionLaps} voltas</span>
+                    )}
+                  </p>
                 </div>
               </div>
 

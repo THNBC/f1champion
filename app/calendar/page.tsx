@@ -5,6 +5,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Flag, Ruler, Trophy } from "lucide-react";
 import { LockKeyhole } from "lucide-react";
+import { calculateSessionLaps } from "@/lib/sessionDuration";
 
 type Circuit = {
   id: number;
@@ -79,6 +80,7 @@ function formatWinnerName(winner?: string | null) {
 
 export default function CalendarPage() {
   const [circuits, setCircuits] = useState<Circuit[]>([]);
+  const [sessionDuration, setSessionDuration] = useState("curta");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,6 +95,14 @@ export default function CalendarPage() {
       .select("*")
       .eq("selected", true)
       .order("calendar_order", { ascending: true });
+
+    const { data: lobbyData } = await supabase
+      .from("lobby_settings")
+      .select("session_duration")
+      .eq("id", "default")
+      .maybeSingle();
+
+    setSessionDuration(lobbyData?.session_duration ?? "curta");
 
     if (circuitsError) {
       console.error("Erro ao carregar calendário:", circuitsError);
@@ -164,6 +174,12 @@ export default function CalendarPage() {
 
   function renderCard(circuit: Circuit) {
     const isLocked = !circuit.winner;
+    const officialLaps = Number(circuit.laps ?? 0);
+
+    const sessionLaps = calculateSessionLaps(
+      officialLaps,
+      sessionDuration
+    );
 
     const flagUrl = circuit.country_code
       ? `https://flagcdn.com/w40/${circuit.country_code.toLowerCase()}.png`
@@ -233,7 +249,9 @@ export default function CalendarPage() {
                 <Flag size={14} className="text-zinc-400 group-hover:text-red-400 transition" />
                 <span>LAPS</span>
               </p>
-              <p className="font-medium text-white">{circuit.laps}</p>
+              <p className="font-medium text-white">
+                {sessionLaps} voltas
+              </p>
             </div>
 
             <div>

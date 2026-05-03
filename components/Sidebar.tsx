@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { calculateSessionLaps } from "@/lib/sessionDuration";
 
 type Race = {
   id: string;
@@ -21,6 +22,7 @@ type Race = {
   date: string | null;
   country_code: string | null;
   track_length: string | null;
+  laps: number | null;
   calendar_order: number | null;
   is_finished: boolean | null;
 };
@@ -37,15 +39,14 @@ function getCountryName(race: Race) {
 export default function Sidebar() {
   const pathname = usePathname();
   const [races, setRaces] = useState<Race[]>([]);
+  const [sessionDuration, setSessionDuration] = useState("curta");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // 🔥 verifica se está logado (AdminGuard)
   useEffect(() => {
     const auth = localStorage.getItem("f1-admin-auth");
     setIsAdmin(auth === "true");
   }, []);
 
-  // 🔥 logout
   function handleLogout() {
     localStorage.removeItem("f1-admin-auth");
     window.location.href = "/";
@@ -63,6 +64,7 @@ export default function Sidebar() {
           date,
           country_code,
           track_length,
+          laps,
           calendar_order,
           is_finished
         `)
@@ -75,6 +77,14 @@ export default function Sidebar() {
       }
 
       setRaces((data ?? []) as Race[]);
+
+      const { data: lobbyData } = await supabase
+        .from("lobby_settings")
+        .select("session_duration")
+        .eq("id", "default")
+        .maybeSingle();
+
+      setSessionDuration(lobbyData?.session_duration ?? "curta");
     }
 
     loadRaces();
@@ -87,6 +97,12 @@ export default function Sidebar() {
 
   const countryName = nextRace ? getCountryName(nextRace) : "";
 
+  const officialLaps = Number(nextRace?.laps ?? 0);
+
+  const sessionLaps = nextRace
+    ? calculateSessionLaps(officialLaps, sessionDuration)
+    : 0;
+
   const menu = [
     { name: "Home", href: "/", icon: Home },
     { name: "Classificação", href: "/standings", icon: Trophy },
@@ -97,7 +113,6 @@ export default function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 flex h-screen w-[260px] flex-col justify-between border-r border-zinc-900 bg-[#050608] p-6 text-white">
-
       <div>
         <div className="mb-10">
           <img src="/icons/f1-logo.png" alt="F1" className="w-30" />
@@ -118,9 +133,7 @@ export default function Sidebar() {
                   }`}
               >
                 <span
-                  className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-red-600 transition-all duration-300 ${isActive
-                      ? "opacity-100"
-                      : "opacity-0 group-hover:opacity-100"
+                  className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-red-600 transition-all duration-300 ${isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                     }`}
                 />
 
@@ -144,16 +157,25 @@ export default function Sidebar() {
 
             <h3 className="text-lg font-bold">{nextRace.name}</h3>
 
-            <p className="mt-1 text-xs text-zinc-400">
-              <span>{nextRace.date || "Data a definir"}</span>
+            <div className="mt-1 text-xs text-zinc-400 space-y-1">
+              {/* DATA */}
+              <p>{nextRace.date || "Data a definir"}</p>
 
-              {nextRace.track_length && (
-                <>
-                  <span> • </span>
+              {/* KM + VOLTAS */}
+              <p>
+                {nextRace.track_length && (
                   <span>{String(nextRace.track_length)}</span>
-                </>
-              )}
-            </p>
+                )}
+
+                {nextRace.track_length && sessionLaps > 0 && (
+                  <span> • </span>
+                )}
+
+                {sessionLaps > 0 && (
+                  <span>{sessionLaps} voltas</span>
+                )}
+              </p>
+            </div>
 
             {(nextRace.country_code || countryName) && (
               <div className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
@@ -181,7 +203,6 @@ export default function Sidebar() {
           </div>
         )}
 
-        {/* SETTINGS */}
         <Link
           href="/settings"
           className="group flex items-center justify-center rounded-xl border border-zinc-800 p-3 text-zinc-400 transition hover:bg-white/10 hover:text-red-500"
@@ -189,7 +210,6 @@ export default function Sidebar() {
           <Settings size={20} />
         </Link>
 
-        {/* LOGOUT (SÓ SE ESTIVER LOGADO) */}
         {isAdmin && (
           <button
             onClick={handleLogout}

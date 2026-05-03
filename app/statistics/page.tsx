@@ -103,21 +103,19 @@ function MovementArrow({
     return (
         <span className="group relative flex h-5 w-5 items-center justify-center">
             <span
-                className={`text-[11px] font-black transition-transform duration-200 group-hover:scale-125 ${
-                    isUp
+                className={`text-[11px] font-black transition-transform duration-200 group-hover:scale-125 ${isUp
                         ? "animate-[arrowUp_0.7s_ease-out] text-emerald-500 group-hover:-translate-y-1"
                         : "animate-[arrowDown_0.7s_ease-out] text-red-500 group-hover:translate-y-1"
-                }`}
+                    }`}
             >
                 {isUp ? "▲" : "▼"}
             </span>
 
             <span
-                className={`pointer-events-none absolute left-1/2 top-7 z-30 -translate-x-1/2 whitespace-nowrap rounded-md px-3 py-2 text-[11px] font-bold opacity-0 shadow-xl transition group-hover:opacity-100 ${
-                    isUp
+                className={`pointer-events-none absolute left-1/2 top-7 z-30 -translate-x-1/2 whitespace-nowrap rounded-md px-3 py-2 text-[11px] font-bold opacity-0 shadow-xl transition group-hover:opacity-100 ${isUp
                         ? "border border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
                         : "border border-red-500/40 bg-red-500/10 text-red-400"
-                }`}
+                    }`}
             >
                 {text}
             </span>
@@ -417,6 +415,11 @@ export default function StatisticsPage() {
             }));
     }, [drivers, teams, results, awards, fastestLapByRace, previousPositions]);
 
+    const maxPenalty = Math.max(
+        ...statistics.map((item) => item.penalties),
+        0
+    );
+
     if (loading) {
         return (
             <main className="min-h-screen bg-[#020407] px-8 py-8 text-white">
@@ -513,11 +516,10 @@ export default function StatisticsPage() {
                                 <span className="text-center">{item.cleanestDriving}</span>
 
                                 <span
-                                    className={`text-center font-black ${
-                                        item.penalties > 0
+                                    className={`text-center font-black ${item.penalties === maxPenalty && maxPenalty > 0
                                             ? "text-red-500"
                                             : "text-zinc-500"
-                                    }`}
+                                        }`}
                                 >
                                     {item.penalties}
                                 </span>
