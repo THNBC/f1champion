@@ -756,11 +756,17 @@ export default function DriverProfilePage() {
                                 </span>
 
                                 <div className="relative flex items-center font-bold">
-                                    <span>
-                                        {result.status === "DNF"
-                                            ? "DNF"
-                                            : ordinal(Number(result.position))}
-                                    </span>
+                                    <span
+    className={
+        result.status === "DNF"
+            ? "text-red-500 font-black"
+            : ""
+    }
+>
+    {result.status === "DNF"
+        ? "DNF"
+        : ordinal(Number(result.position))}
+</span>
 
                                     {result.status !== "DNF" && (
                                         <div className="absolute -left-7">
