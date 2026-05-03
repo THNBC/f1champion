@@ -13,15 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className="bg-[#0a0a0a] text-white">
-        <div className="flex">
-          {/* Sidebar */}
-         <div className="hidden md:block">
-  <Sidebar />
-</div>
+      <body className="bg-[#0a0a0a] text-white overflow-x-auto">
+        <div className="flex min-w-[1400px]">
+          <Sidebar />
 
-          {/* Conteúdo */}
-          <main className="w-full p-4 md:ml-[260px] md:p-8">
+          <main className="ml-[260px] w-full p-8">
             {children}
           </main>
         </div>
