@@ -372,16 +372,16 @@ export default function DriverProfilePage() {
     }, [driverId]);
 
     const sortedResults = useMemo(() => {
-        return [...results].sort((a, b) => {
-            const circuitA = circuits.find((circuit) => circuit.id === a.race_id);
-            const circuitB = circuits.find((circuit) => circuit.id === b.race_id);
+    return [...results].sort((a, b) => {
+        const circuitA = circuits.find((c) => c.id === a.race_id);
+        const circuitB = circuits.find((c) => c.id === b.race_id);
 
-            const dateA = circuitA?.date ?? "";
-            const dateB = circuitB?.date ?? "";
+        const orderA = (circuitA as any)?.calendar_order ?? 999;
+        const orderB = (circuitB as any)?.calendar_order ?? 999;
 
-            return dateA.localeCompare(dateB);
-        });
-    }, [results, circuits]);
+        return orderA - orderB;
+    });
+}, [results, circuits]);
 
     const driverPosition = useMemo(() => {
         const pointsByDriver = new Map<string, number>();
