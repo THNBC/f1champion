@@ -37,6 +37,19 @@ function getCountryName(race: Race) {
 export default function Sidebar() {
   const pathname = usePathname();
   const [races, setRaces] = useState<Race[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // 🔥 verifica se está logado (AdminGuard)
+  useEffect(() => {
+    const auth = localStorage.getItem("f1-admin-auth");
+    setIsAdmin(auth === "true");
+  }, []);
+
+  // 🔥 logout
+  function handleLogout() {
+    localStorage.removeItem("f1-admin-auth");
+    window.location.href = "/";
+  }
 
   useEffect(() => {
     async function loadRaces() {
@@ -84,6 +97,7 @@ export default function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 flex h-screen w-[260px] flex-col justify-between border-r border-zinc-900 bg-[#050608] p-6 text-white">
+      
       <div>
         <div className="mb-10">
           <img src="/icons/f1-logo.png" alt="F1" className="w-30" />
@@ -106,7 +120,9 @@ export default function Sidebar() {
               >
                 <span
                   className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-red-600 transition-all duration-300 ${
-                    isActive ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                    isActive
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
                   }`}
                 />
 
@@ -167,12 +183,23 @@ export default function Sidebar() {
           </div>
         )}
 
+        {/* SETTINGS */}
         <Link
           href="/settings"
           className="group flex items-center justify-center rounded-xl border border-zinc-800 p-3 text-zinc-400 transition hover:bg-white/10 hover:text-red-500"
         >
           <Settings size={20} />
         </Link>
+
+        {/* LOGOUT (SÓ SE ESTIVER LOGADO) */}
+        {isAdmin && (
+          <button
+            onClick={handleLogout}
+            className="group flex items-center justify-center rounded-xl border border-zinc-800 p-3 text-xs font-black uppercase tracking-wide text-zinc-500 transition hover:border-red-500 hover:text-red-500"
+          >
+            Logout
+          </button>
+        )}
       </div>
     </aside>
   );
