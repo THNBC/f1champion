@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Flag, Ruler, Trophy } from "lucide-react";
+import { LockKeyhole } from "lucide-react";
 
 type Circuit = {
   id: number;
@@ -192,10 +193,9 @@ export default function CalendarPage() {
 
           {isLocked && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-              <img
-                src="/icons/block.png"
-                alt="Bloqueado"
-                className="relative h-10 w-10 object-contain drop-shadow-[0_0_12px_rgba(255,255,255,0.35)]"
+              <LockKeyhole
+                size={60}
+                className="text-white opacity-90 transition group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
               />
             </div>
           )}

@@ -4,6 +4,7 @@ import AdminGuard from "@/components/AdminGuard";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { Trash } from "lucide-react";
 
 type AvailableCircuit = {
     id: string;
@@ -408,10 +409,13 @@ export default function SettingsCircuitsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => removeCircuit(slot.slot)}
-                                                className="flex h-7 w-7 items-center justify-center rounded-md border border-zinc-800 bg-black/30 text-sm font-black text-red-500 transition hover:border-red-500 hover:bg-red-600 hover:text-white"
+                                                className="flex items-center justify-left"
                                                 title="Excluir pista"
                                             >
-                                                ×
+                                                <Trash
+                                                    size={25}
+                                                    className="text-white transition hover:text-red-500 hover:scale-110 hover:drop-shadow-[0_0_6px_rgba(239,68,68,0.8)]"
+                                                />
                                             </button>
                                         ) : (
                                             <span />
@@ -503,7 +507,7 @@ export default function SettingsCircuitsPage() {
                                                 href={`/races/${circuit.id}/edit`}
                                                 className="flex items-center justify-center gap-2 rounded-md border border-zinc-700 bg-black/30 px-3 py-2 text-xs font-black uppercase text-zinc-200 transition hover:border-red-600 hover:text-red-500"
                                             >
-                                                ✎ Editar resultados
+                                                Editar resultados
                                             </Link>
                                         </div>
                                     ) : (

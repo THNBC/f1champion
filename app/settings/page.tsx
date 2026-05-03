@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { SlidersHorizontal, Users, Map, AlertTriangle, X } from "lucide-react";
 import { useState } from "react";
+import { CirclePlus, PencilLine, Trash } from "lucide-react";
 
 function SettingsCard({
   href,
@@ -19,7 +20,7 @@ function SettingsCard({
   icon: any;
   title: string;
   description: string;
-  items: { icon: string; label: string }[];
+  items: { icon: React.ReactNode; label: string }[];
   button: string;
   className?: string;
 }) {
@@ -50,7 +51,9 @@ function SettingsCard({
             key={item.label}
             className="flex items-center gap-8 border-b border-zinc-800/80 py-5 text-lg text-zinc-300"
           >
-            <span className="w-8 text-3xl text-zinc-500">{item.icon}</span>
+            <span className="flex w-8 items-center justify-center text-zinc-500 transition group-hover:text-red-500 group-hover:scale-110">
+              {item.icon}
+            </span>
             <span>{item.label}</span>
           </div>
         ))}
@@ -122,18 +125,16 @@ export default function SettingsPage() {
       <main className="min-h-screen bg-[#020407] px-10 py-10 text-white">
         {toast && (
           <div
-            className={`fixed bottom-10 left-1/2 z-[9999] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              toast.isLeaving
+            className={`fixed bottom-10 left-1/2 z-[9999] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${toast.isLeaving
                 ? "translate-y-4 scale-95 opacity-0 blur-[2px]"
                 : "translate-y-0 scale-100 opacity-100 blur-0"
-            }`}
+              }`}
           >
             <div
-              className={`animate-toast-in rounded-xl border px-6 py-4 shadow-2xl backdrop-blur-md ${
-                toast.type === "success"
+              className={`animate-toast-in rounded-xl border px-6 py-4 shadow-2xl backdrop-blur-md ${toast.type === "success"
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
                   : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
-              }`}
+                }`}
             >
               <p className="text-center text-xs font-black uppercase tracking-wide">
                 {toast.type === "success" ? "Sucesso" : "Erro"}
@@ -251,9 +252,9 @@ export default function SettingsPage() {
               description="Gerencie os pilotos e suas informações."
               button="Gerenciar pilotos"
               items={[
-                { icon: "+", label: "Adicionar piloto" },
-                { icon: "✎", label: "Editar piloto" },
-                { icon: "⌫", label: "Remover piloto" },
+                { icon: <CirclePlus size={22} />, label: "Adicionar circuito" },
+                { icon: <PencilLine size={22} />, label: "Editar circuito" },
+                { icon: <Trash size={22} />, label: "Remover circuito" },
               ]}
             />
 
@@ -264,9 +265,9 @@ export default function SettingsPage() {
               description="Gerencie os circuitos e suas informações."
               button="Gerenciar circuitos"
               items={[
-                { icon: "+", label: "Adicionar circuito" },
-                { icon: "✎", label: "Editar circuito" },
-                { icon: "⌫", label: "Remover circuito" },
+                { icon: <CirclePlus size={22} />, label: "Adicionar circuito" },
+                { icon: <PencilLine size={22} />, label: "Editar circuito" },
+                { icon: <Trash size={22} />, label: "Remover circuito" },
               ]}
             />
 
