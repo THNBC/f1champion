@@ -43,6 +43,7 @@ type RaceResult = {
   team?: string;
   team_id?: string | number;
   points?: number;
+  fastest_lap?: string | null;
 };
 
 function MovementArrow({
@@ -342,7 +343,48 @@ export default function HomePage() {
       (d) => String(d.driver?.id) === String(selectedRaceWinnerDriver.id)
     )
     : null;
+  const selectedRaceFastestLapResult =
+    selectedRaceResults
+      .filter(
+        (r) =>
+          r.fastest_lap &&
+          r.fastest_lap !== "0:00.000" &&
+          r.fastest_lap !== "-"
+      )
+      .sort((a, b) => {
+        const parse = (time: string) => {
+          const [min, rest] = time.split(":");
+          const [sec, ms] = rest.split(".");
+          return (
+            Number(min) * 60000 +
+            Number(sec) * 1000 +
+            Number(ms)
+          );
+        };
 
+        return parse(a.fastest_lap!) - parse(b.fastest_lap!);
+      })[0] ?? null;
+
+  const selectedRaceFastestLapDriver = selectedRaceFastestLapResult
+    ? driversData.find(
+      (driver) =>
+        String(driver.id) === String(selectedRaceFastestLapResult.driver_id) ||
+        driver.name === selectedRaceFastestLapResult.driver
+    ) ?? null
+    : null;
+
+  const selectedRaceFastestLapTeam = selectedRaceFastestLapResult
+    ? teamsData.find(
+      (team) =>
+        String(team.id) === String(selectedRaceFastestLapResult.team_id) ||
+        team.name === selectedRaceFastestLapResult.team
+    ) ?? null
+    : null;
+
+  const selectedFastestLapDriverImage = getDriverImage(
+    selectedRaceFastestLapDriver,
+    selectedRaceFastestLapTeam
+  );
 
 
 
@@ -412,13 +454,7 @@ export default function HomePage() {
     }));
   }, [teamsData, resultsData, previousTeamPositions]);
 
-  const winnerTeamStanding = selectedRaceWinnerTeam
-    ? constructorStandings.find(
-      (item) =>
-        String(item.team?.id) === String(selectedRaceWinnerTeam.id) ||
-        item.teamName === selectedRaceWinnerTeam.name
-    )
-    : null;
+
 
   const leader = driverStandings[0];
   const teamLeader = constructorStandings[0];
@@ -431,7 +467,7 @@ export default function HomePage() {
     selectedRaceWinnerTeam
   );
 
-  const selectedWinnerTeamImage = getCarImage(selectedRaceWinnerTeam);
+
 
   const selectedCircuitImageName = normalizeRaceImageName(
     selectedCircuit?.id || selectedCircuit?.name || selectedCircuit?.circuit
@@ -805,7 +841,7 @@ export default function HomePage() {
                   </Link>
 
                   <p className="mt-6 text-4xl font-black text-red-500">
-                    {selectedRaceWinnerResult?.points ?? 25}
+                    {winnerStanding?.points ?? 0}
                     <span className="ml-2 text-xl text-zinc-400">PTS</span>
                   </p>
                 </div>
@@ -873,43 +909,65 @@ export default function HomePage() {
           </div>
 
           <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-[#070a0e] p-6">
-            <h2 className="mb-6 text-lg font-black uppercase">
-              {selectedRaceWinnerTeam ? "Equipe vencedora" : "Equipe líder"}
-            </h2>
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-black uppercase">
+                {selectedRaceFastestLapDriver ? "Volta rápida" : "Equipe líder"}
+              </h2>
 
-            {selectedRaceWinnerTeam ? (
-              <div className="relative min-h-[200px]">
-                <div className="relative z-10 max-w-[240px]">
+
+            </div>
+
+            {selectedRaceFastestLapDriver ? (
+              <div className="relative min-h-[220px]">
+                <div className="relative z-10 max-w-[260px]">
                   <p className="text-7xl font-black">
-                    {winnerTeamStanding?.position ?? 1}º
+                    {selectedRaceFastestLapResult?.position ?? "-"}º
                   </p>
 
                   <Link
-                    href={`/teams/${selectedRaceWinnerTeam.id}`}
+                    href={`/drivers/${selectedRaceFastestLapDriver.id}`}
                     className="mt-2 block break-words text-2xl font-black uppercase leading-tight transition hover:text-red-500"
                   >
-                    {selectedRaceWinnerTeam.name}
+                    {selectedRaceFastestLapDriver.name}
                   </Link>
 
-                  <p className="mt-6 text-4xl font-black text-red-500">
-                    {selectedRaceWinnerResult?.points ?? 25}
-                    <span className="ml-2 text-xl text-zinc-400">PTS</span>
+                  <Link
+                    href={`/teams/${selectedRaceFastestLapTeam?.id}`}
+                    className="mt-2 flex max-w-[230px] items-center gap-2 text-zinc-400 transition hover:text-red-500"
+                  >
+                    {selectedRaceFastestLapTeam?.logo ? (
+                      <img
+                        src={selectedRaceFastestLapTeam.logo}
+                        alt={selectedRaceFastestLapTeam.name}
+                        className="h-5 w-5 shrink-0 object-contain"
+                      />
+                    ) : (
+                      <span className="h-3 w-3 shrink-0 rounded-full bg-zinc-600" />
+                    )}
+
+                    <span className="leading-tight">
+                      {selectedRaceFastestLapTeam?.name ?? "-"}
+                    </span>
+                  </Link>
+
+                  <p className="mt-6 text-4xl font-black text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]">
+                    {selectedRaceFastestLapResult.fastest_lap}
                   </p>
                 </div>
 
-                <div className="pointer-events-none absolute bottom-0 right-0 h-[200px] w-[260px] overflow-hidden">
+                <div className="pointer-events-none absolute bottom-0 right-0 h-[240px] w-[300px] overflow-hidden">
                   <img
-                    src={selectedWinnerTeamImage}
-                    alt={selectedRaceWinnerTeam.name}
-                    className="absolute bottom-0 right-0 h-[200px] w-auto object-contain"
+                    src={selectedFastestLapDriverImage}
+                    alt={selectedRaceFastestLapDriver.name}
+                    className="absolute bottom-0 right-0 h-[220px] w-auto object-contain"
                     onError={(e) => {
-                      e.currentTarget.src = "/cars/default-car.png";
+                      e.currentTarget.src = "/drivers/default.png";
                     }}
                   />
                 </div>
               </div>
             ) : teamLeader ? (
-              <div className="relative min-h-[200px]">
+              <div className="relative min-h-[220px]">
                 <div className="relative z-10 max-w-[240px]">
                   <p className="text-7xl font-black">{teamLeader.position}º</p>
 
@@ -926,7 +984,7 @@ export default function HomePage() {
                   </p>
                 </div>
 
-                <div className="pointer-events-none absolute bottom-0 right-0 h-[200px] w-[260px] overflow-hidden">
+                <div className="pointer-events-none absolute bottom-0 right-0 h-[220px] w-[280px] overflow-hidden">
                   <img
                     src={teamLeaderImage}
                     alt={teamLeader.teamName}
