@@ -63,7 +63,7 @@ const teams = [
     color: "#6692ff",
   },
   {
-    id: "kicks sauber",
+    id: "sauber",
     name: "Stake F1 Team Kick Sauber",
     country: "Switzerland",
     logo: "/logos/sauber.png",
