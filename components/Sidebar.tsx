@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   SlidersHorizontal,
+  Crown,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { calculateSessionLaps } from "@/lib/sessionDuration";
@@ -107,6 +108,7 @@ export default function Sidebar() {
     { name: "Home", href: "/", icon: Home },
     { name: "Classificação", href: "/standings", icon: Trophy },
     { name: "Calendário", href: "/calendar", icon: Calendar },
+    { name: "Campeões", href: "/champions", icon: Crown },
     { name: "Estatísticas", href: "/statistics", icon: BarChart3 },
     { name: "Lobby Config.", href: "/lobby-config", icon: SlidersHorizontal },
   ];
@@ -128,8 +130,8 @@ export default function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={`group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 transition ${isActive
-                    ? "bg-white/10 text-white"
-                    : "text-zinc-400 hover:bg-white/10 hover:text-red-500"
+                  ? "bg-white/10 text-white"
+                  : "text-zinc-400 hover:bg-white/10 hover:text-red-500"
                   }`}
               >
                 <span

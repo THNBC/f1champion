@@ -10,6 +10,7 @@ type Driver = {
     name: string;
     nationality: string | null;
     team_id: string;
+    initial_points: number | null;
 };
 
 type Team = {
@@ -278,10 +279,12 @@ function StandingsContent() {
 
             const team = teams.find((item) => item.id === driver.team_id) ?? null;
 
-            const points = driverResults.reduce(
+            const racePoints = driverResults.reduce(
                 (sum, result) => sum + Number(result.points ?? 0),
                 0
             );
+
+            const points = racePoints + Number(driver.initial_points ?? 0);
 
             const wins = driverResults.filter((result) => result.position === 1).length;
 
@@ -337,10 +340,16 @@ function StandingsContent() {
         const standings = teams.map((team) => {
             const teamResults = results.filter((result) => result.team_id === team.id);
 
-            const points = teamResults.reduce(
+            const racePoints = teamResults.reduce(
                 (sum, result) => sum + Number(result.points ?? 0),
                 0
             );
+
+            const initialPoints = drivers
+                .filter((driver) => driver.team_id === team.id)
+                .reduce((sum, driver) => sum + Number(driver.initial_points ?? 0), 0);
+
+            const points = racePoints + initialPoints;
 
             const wins = teamResults.filter((result) => result.position === 1).length;
 
@@ -383,7 +392,7 @@ function StandingsContent() {
             previousPosition: previousTeamPositions.get(item.team.id) ?? null,
             gap: leaderPoints - item.points,
         }));
-    }, [teams, results, previousTeamPositions, fastestLapByRace]);
+    }, [teams, drivers, results, previousTeamPositions, fastestLapByRace]);
 
     if (loading) {
         return (

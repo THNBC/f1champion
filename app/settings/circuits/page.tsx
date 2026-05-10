@@ -311,11 +311,22 @@ export default function SettingsCircuitsPage() {
                 <div className="mx-auto max-w-[1500px]">
                     <div className="mb-8 flex items-start justify-between gap-6">
                         <div>
-                            <p className="mb-3 inline-block border-b-2 border-red-600 pb-2 text-sm font-black uppercase text-red-500">
-                                Settings
-                            </p>
+                            <div className="mb-4 flex items-center gap-3 text-sm font-black uppercase text-zinc-500">
+                                <Link
+                                    href="/settings"
+                                    className="text-red-500 hover:text-red-400"
+                                >
+                                    Settings
+                                </Link>
 
-                            <h1 className="text-4xl font-black">Configurar Circuitos</h1>
+                                <span>›</span>
+
+                                <span>Circuits</span>
+                            </div>
+
+                            <h1 className="text-4xl font-black">
+                                Configurar Circuitos
+                            </h1>
 
                             <p className="mt-3 text-sm text-zinc-400">
                                 Selecione os circuitos que serão utilizados no campeonato.
@@ -324,9 +335,9 @@ export default function SettingsCircuitsPage() {
 
                         <Link
                             href="/settings"
-                            className="rounded-lg border border-red-700 px-5 py-3 text-xs font-black uppercase text-red-500 transition hover:bg-red-600 hover:text-white"
+                            className="flex h-11 items-center gap-2 rounded-xl border border-zinc-800 bg-[#080c11] px-4 text-sm font-black uppercase tracking-wide text-zinc-400 transition hover:border-red-500 hover:text-red-400"
                         >
-                            Voltar
+                            ← Voltar
                         </Link>
                     </div>
 

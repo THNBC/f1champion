@@ -3,7 +3,7 @@
 import AdminGuard from "@/components/AdminGuard";
 import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { SlidersHorizontal, Users, Map, AlertTriangle, X } from "lucide-react";
+import { SlidersHorizontal, Users, Map, AlertTriangle, X, Crown } from "lucide-react";
 import { useState } from "react";
 import { CirclePlus, PencilLine, Trash } from "lucide-react";
 
@@ -29,7 +29,7 @@ function SettingsCard({
   return (
     <Link
       href={href}
-      className={`group rounded-2xl border border-zinc-800 bg-[#080c11] p-8 shadow-[0_0_50px_rgba(0,0,0,0.35)] transition hover:border-red-600/70 hover:bg-[#0b1017] ${className}`}
+      className={`group flex h-full flex-col rounded-2xl border border-zinc-800 bg-[#080c11] p-8 shadow-[0_0_50px_rgba(0,0,0,0.35)] transition hover:border-red-600/70 hover:bg-[#0b1017] ${className}`}
     >
       <div className="mb-10 flex items-center gap-8">
         <div className="flex h-24 w-24 shrink-0 items-center justify-center">
@@ -59,8 +59,10 @@ function SettingsCard({
         ))}
       </div>
 
-      <div className="mt-12 rounded-lg border border-red-600 px-6 py-4 text-center text-sm font-black uppercase tracking-wide text-red-500 transition group-hover:bg-red-600 group-hover:text-white">
-        {button}
+      <div className="mt-auto pt-12">
+        <div className="flex h-14 items-center justify-center rounded-xl border border-red-600 bg-red-600/10 px-6 text-sm font-black uppercase tracking-wide text-red-500 transition group-hover:bg-red-600 group-hover:text-white">
+          {button}
+        </div>
       </div>
     </Link>
   );
@@ -126,14 +128,14 @@ export default function SettingsPage() {
         {toast && (
           <div
             className={`fixed bottom-10 left-1/2 z-[9999] -translate-x-1/2 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${toast.isLeaving
-                ? "translate-y-4 scale-95 opacity-0 blur-[2px]"
-                : "translate-y-0 scale-100 opacity-100 blur-0"
+              ? "translate-y-4 scale-95 opacity-0 blur-[2px]"
+              : "translate-y-0 scale-100 opacity-100 blur-0"
               }`}
           >
             <div
               className={`animate-toast-in rounded-xl border px-6 py-4 shadow-2xl backdrop-blur-md ${toast.type === "success"
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
-                  : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400 shadow-emerald-950/30"
+                : "border-red-500/40 bg-red-500/10 text-red-400 shadow-red-950/30"
                 }`}
             >
               <p className="text-center text-xs font-black uppercase tracking-wide">
@@ -270,11 +272,22 @@ export default function SettingsPage() {
                 { icon: <Trash size={22} />, label: "Remover circuito" },
               ]}
             />
-
+            <SettingsCard
+              href="/settings/champions"
+              icon={Crown}
+              title="Campeões"
+              description="Gerencie os campeões de cada temporada."
+              button="Gerenciar campeões"
+              items={[
+                { icon: <CirclePlus size={22} />, label: "Adicionar campeão" },
+                { icon: <PencilLine size={22} />, label: "Editar campeão" },
+                { icon: <Trash size={22} />, label: "Remover campeão" },
+              ]}
+            />
             <SettingsCard
               href="/settings/lobby"
               icon={SlidersHorizontal}
-              className="xl:col-span-2"
+
               title="Lobby Config."
               description="Configure regras, assistências e simulação do lobby."
               button="Configurar lobby"
@@ -314,6 +327,7 @@ export default function SettingsPage() {
                 Resetar campeonato
               </button>
             </div>
+
           </section>
         </div>
       </main>

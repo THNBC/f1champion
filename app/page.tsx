@@ -12,6 +12,7 @@ type Driver = {
   team?: string;
   teamId?: string;
   team_id?: string | number;
+  initial_points?: number | null;
 };
 
 type Team = {
@@ -318,10 +319,10 @@ export default function HomePage() {
         );
 
         return {
-          driver,
-          team,
-          points,
-        };
+  driver,
+  team,
+  points: points + Number(driver?.initial_points ?? 0),
+};
       })
       .filter((item) => item.driver)
       .sort((a, b) => b.points - a.points)
@@ -433,11 +434,23 @@ export default function HomePage() {
           teamsData.find((item) => String(item.id) === teamKey) ??
           teamsData.find((item) => item.name === teamKey);
 
-        return {
-          team,
-          teamName: team?.name ?? teamKey,
-          points,
-        };
+        const initialPoints = driversData
+  .filter(
+    (driver) =>
+      String(driver.team_id ?? driver.teamId) ===
+      String(team?.id)
+  )
+  .reduce(
+    (sum, driver) =>
+      sum + Number(driver.initial_points ?? 0),
+    0
+  );
+
+return {
+  team,
+  teamName: team?.name ?? teamKey,
+  points: points + initialPoints,
+};
       })
       .sort((a, b) => b.points - a.points)
       .slice(0, 5);
