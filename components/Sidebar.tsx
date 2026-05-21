@@ -108,8 +108,9 @@ export default function Sidebar() {
     { name: "Home", href: "/", icon: Home },
     { name: "Classificação", href: "/standings", icon: Trophy },
     { name: "Calendário", href: "/calendar", icon: Calendar },
-    { name: "Campeões", href: "/champions", icon: Crown },
+
     { name: "Estatísticas", href: "/statistics", icon: BarChart3 },
+    { name: "Campeões", href: "/champions", icon: Crown },
     { name: "Lobby Config.", href: "/lobby-config", icon: SlidersHorizontal },
   ];
 

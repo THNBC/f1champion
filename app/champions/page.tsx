@@ -89,53 +89,64 @@ export default function ChampionsPage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#020407] px-10 py-10 text-white">
       <div className="relative z-10 mx-auto max-w-[1500px]">
-        <section className="relative mb-10 overflow-hidden rounded-[32px] border border-zinc-800 bg-[#080c11] p-10 shadow-[0_0_70px_rgba(0,0,0,0.45)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.28),transparent_42%)]" />
-          <div className="absolute right-0 top-0 h-full w-[55%] bg-gradient-to-l from-red-950/30 via-red-950/10 to-transparent" />
+        <section className="relative mb-10 min-h-[260px] overflow-hidden rounded-[32px] border border-zinc-800 bg-[#070d13] p-10 shadow-[0_0_60px_rgba(0,0,0,0.45)]">
 
-          <div className="relative z-10 flex items-center justify-between gap-10">
-            <div>
-              <p className="mb-3 text-sm font-black uppercase tracking-[0.35em] text-red-500">
-                Hall da fama
-              </p>
+          {/* IMAGEM FULL */}
+          <div className="pointer-events-none absolute inset-0">
+            <img
+              src="/standings/champions-bg.png"
+              alt="Hall da fama"
+              className="h-full w-full object-cover object-[80%_center]"
+            />
+          </div>
 
-              <h1 className="text-6xl font-black uppercase tracking-tight">
-                Campeões
-              </h1>
+          {/* DEGRADE ESQUERDA → DIREITA */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#020407] via-[#020407]/80 to-transparent" />
 
-              <p className="mt-5 max-w-2xl text-lg text-zinc-400">
-                Todos os campeões do campeonato ao longo da história.
-              </p>
+          {/* DEGRADE BAIXO */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#020407]/90" />
 
-              <div className="mt-10 flex flex-wrap items-center gap-10">
-                <div>
-                  <p className="text-5xl font-black">{champions.length}</p>
+          {/* CONTEÚDO */}
+          <div className="relative z-10 max-w-3xl">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-red-500">
+              Hall da fama
+            </p>
 
-                  <p className="mt-2 text-xs font-black uppercase tracking-[0.3em] text-zinc-500">
-                    Temporadas
-                  </p>
-                </div>
+            <h1 className="text-6xl font-black uppercase tracking-tight">
+              Campeões
+            </h1>
 
-                <div className="h-16 w-px bg-zinc-800" />
+            <p className="mt-5 text-lg text-zinc-400">
+              Todos os campeões do campeonato ao longo da história.
+            </p>
 
-                <div>
-                  <p className="text-3xl font-black">
-                    {topChampion?.name || "-"}
-                  </p>
+            <div className="mt-10 flex flex-wrap items-center gap-10">
+              <div>
+                <p className="text-5xl font-black">
+                  {champions.length}
+                </p>
 
-                  <p className="mt-2 text-sm font-bold text-yellow-400">
-                    {topChampion
-                      ? `${topChampion.titles} ${
-                          topChampion.titles === 1 ? "título" : "títulos"
-                        }`
-                      : "0 títulos"}
-                  </p>
-                </div>
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.3em] text-zinc-500">
+                  Temporadas
+                </p>
               </div>
-            </div>
 
-            <div className="hidden lg:flex items-center justify-center">
-              <Crown className="h-32 w-32 text-yellow-400" />
+              <div className="h-16 w-px bg-zinc-800" />
+
+              <div>
+                <p className="text-3xl font-black">
+                  {topChampion?.name || "-"}
+                </p>
+
+                <p className="mt-2 text-sm font-bold text-yellow-400">
+                  {topChampion
+                    ? `${topChampion.titles} ${topChampion.titles === 1
+                      ? "título"
+                      : "títulos"
+                    }`
+                    : "0 títulos"}
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -162,7 +173,7 @@ export default function ChampionsPage() {
             <div
               className={`grid ${gridCols} border-b border-red-500 bg-black/20 px-[88px] py-5 text-sm font-black uppercase tracking-[0.18em] text-zinc-400`}
             >
-              <div className="text-red-500">Temporada</div>
+              <div>Temporada</div>
               <div>Ano</div>
               <div>Piloto</div>
               <div>Equipe</div>
